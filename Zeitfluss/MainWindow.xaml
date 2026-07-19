@@ -1,0 +1,50 @@
+<Window x:Class="Zeitfluss.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        Title="Zeitfluss" Height="408" Width="342" WindowStyle="None" AllowsTransparency="False" Background="#FCFCFD" ResizeMode="NoResize" ShowInTaskbar="True" UseLayoutRounding="True">
+    <shell:WindowChrome.WindowChrome><shell:WindowChrome CaptionHeight="0" CornerRadius="18" GlassFrameThickness="0" ResizeBorderThickness="1" UseAeroCaptionButtons="False" /></shell:WindowChrome.WindowChrome>
+    <Grid>
+        <Border x:Name="FullShell" Padding="22" CornerRadius="18" Background="#FCFCFD" BorderBrush="#D9D9DE" BorderThickness="1">
+            <Grid>
+                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                <Grid Grid.Row="0" MouseLeftButtonDown="Header_MouseLeftButtonDown">
+                    <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel><TextBlock Text="Zeitfluss" FontWeight="SemiBold" FontSize="15" /><TextBlock x:Name="DateText" Foreground="{StaticResource MutedInk}" FontSize="11" Margin="0,2,0,0" /></StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button x:Name="PinButton" Style="{StaticResource GhostButton}" ToolTip="Im Vordergrund halten" Click="PinButton_Click"><TextBlock Text="⌖" FontFamily="Segoe UI Symbol" FontSize="14" /></Button>
+                        <Button x:Name="CompactModeButton" Style="{StaticResource GhostButton}" ToolTip="Kompakt anzeigen" Click="MinimizeButton_Click"><TextBlock Text="−" FontSize="15" /></Button>
+                        <Button Style="{StaticResource GhostButton}" ToolTip="Schließen" Click="CloseButton_Click"><TextBlock Text="×" FontSize="15" /></Button>
+                    </StackPanel>
+                </Grid>
+                <StackPanel Grid.Row="1" Margin="0,22,0,0">
+                    <TextBlock x:Name="StatusText" Text="Bereit" Foreground="{StaticResource MutedInk}" FontSize="12" FontWeight="SemiBold" />
+                    <TextBlock x:Name="ElapsedText" Text="00:00:00" FontFamily="Segoe UI Variable Display" FontSize="40" FontWeight="SemiBold" Margin="-2,2,0,0" />
+                </StackPanel>
+                <Grid Grid.Row="2" Margin="0,17,0,0">
+                    <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition /><ColumnDefinition /></Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0"><TextBlock Text="Heute" FontSize="11" Foreground="{StaticResource MutedInk}" /><TextBlock x:Name="TodayActualText" Text="00:00" FontSize="15" FontWeight="SemiBold" Margin="0,3,0,0" /></StackPanel>
+                    <StackPanel Grid.Column="1"><TextBlock Text="Soll" FontSize="11" Foreground="{StaticResource MutedInk}" /><TextBlock x:Name="TodayTargetText" Text="08:00" FontSize="15" FontWeight="SemiBold" Margin="0,3,0,0" /></StackPanel>
+                    <StackPanel Grid.Column="2"><TextBlock Text="Gesamtsaldo" FontSize="11" Foreground="{StaticResource MutedInk}" /><TextBlock x:Name="BalanceText" Text="±00:00" FontSize="15" FontWeight="SemiBold" Margin="0,3,0,0" /></StackPanel>
+                </Grid>
+                <Grid Grid.Row="3" Margin="0,22,0,17">
+                    <Grid.RowDefinitions><RowDefinition Height="44" /><RowDefinition Height="9" /><RowDefinition Height="42" /></Grid.RowDefinitions><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="9" /><ColumnDefinition /></Grid.ColumnDefinitions>
+                    <Button x:Name="StartButton" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Style="{StaticResource PrimaryButton}" Content="Arbeit beginnen" Click="StartButton_Click" />
+                    <Button x:Name="PauseButton" Grid.Row="2" Grid.Column="0" Style="{StaticResource SecondaryButton}" Content="Pause" Click="PauseButton_Click" />
+                    <Button x:Name="EndButton" Grid.Row="2" Grid.Column="2" Style="{StaticResource SecondaryButton}" Content="Feierabend" Click="EndButton_Click" />
+                </Grid>
+                <Grid Grid.Row="4"><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <TextBlock x:Name="WeekText" VerticalAlignment="Center" Foreground="{StaticResource MutedInk}" FontSize="11" />
+                    <Button Grid.Column="1" Style="{StaticResource GhostButton}" ToolTip="Statistik und Export" Content="Auswertung" Click="StatisticsButton_Click" />
+                    <Button Grid.Column="2" Style="{StaticResource GhostButton}" ToolTip="Einstellungen" Click="SettingsButton_Click"><TextBlock Text="⚙" FontFamily="Segoe UI Symbol" FontSize="14" /></Button>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <Border x:Name="CompactShell" Visibility="Collapsed" CornerRadius="15" Background="#171719" BorderBrush="#353539" BorderThickness="1" Cursor="Hand" ToolTip="Klicken zum Öffnen · Ziehen zum Verschieben"
+                PreviewMouseLeftButtonDown="CompactShell_MouseLeftButtonDown" MouseMove="CompactShell_MouseMove" PreviewMouseLeftButtonUp="CompactShell_MouseLeftButtonUp">
+            <Grid Margin="14,0"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="9" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <Ellipse x:Name="CompactStatusDot" Width="7" Height="7" Fill="#85858C" VerticalAlignment="Center" />
+                <TextBlock x:Name="CompactTimeText" Grid.Column="2" Text="00:00" Foreground="White" FontFamily="Segoe UI Variable Display" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="3" Text="↗" Foreground="#AFAFB5" FontSize="13" VerticalAlignment="Center" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

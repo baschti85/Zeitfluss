@@ -1,0 +1,27 @@
+# .NET build output
+**/bin/
+**/obj/
+TestResults/
+*.user
+*.suo
+
+# IDE and OS files
+.vs/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local releases and generated visual checks
+publish/
+visual-smoke/
+visual-smoke-v2/
+visual-smoke-v3/
+
+# Local agent work notes
+tasks/
+
+# Local Zeitfluss backups
+*.zeitfluss
+*.csv
+arbeitszeiten.json

@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Zeitfluss.LogicTests/Zeitfluss.LogicTests.csproj" />
+  <Project Path="Zeitfluss.VisualSmoke/Zeitfluss.VisualSmoke.csproj" />
+  <Project Path="Zeitfluss/Zeitfluss.csproj" />
+</Solution>
