@@ -64,7 +64,7 @@ public partial class MainWindow : Window
         var actual = TimeCalculator.ActualForDay(_data, today, now); var target = TimeCalculator.TargetForDay(_data, today);
         var balance = TimeCalculator.Daily(_data, today, now).LastOrDefault()?.Cumulative ?? TimeSpan.Zero;
         DateText.Text = now.ToString("dddd, d. MMMM", CultureInfo.GetCultureInfo("de-DE"));
-        var current = active is null ? actual : TimeCalculator.EffectiveEnd(active, now) - TimeCalculator.EffectiveStart(active);
+        var current = active is null ? actual : TimeCalculator.RecordedDuration(active, now);
         ElapsedText.Text = active is null ? TimeCalculator.FormatDuration(actual) : $"{(int)current.TotalHours:00}:{current.Minutes:00}:{current.Seconds:00}";
         TodayActualText.Text = TimeCalculator.FormatDuration(actual); TodayTargetText.Text = TimeCalculator.FormatDuration(target);
         CompactTimeText.Text = TimeCalculator.FormatDuration(actual);

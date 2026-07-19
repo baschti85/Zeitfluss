@@ -22,6 +22,12 @@ public static class TimeCalculator
         return end < EffectiveStart(interval) ? EffectiveStart(interval) : end;
     }
 
+    public static TimeSpan RecordedDuration(WorkInterval interval, DateTime now)
+    {
+        var end = interval.EndedAt ?? now;
+        return end > interval.StartedAt ? end - interval.StartedAt : TimeSpan.Zero;
+    }
+
     public static TimeSpan ActualForDay(AppData data, DateOnly date, DateTime now)
     {
         var dayStart = date.ToDateTime(TimeOnly.MinValue);

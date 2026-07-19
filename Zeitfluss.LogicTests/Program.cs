@@ -10,6 +10,7 @@ var tests = new (string Name, Action Run)[]
     ("Tage werden einzeln und absteigend aggregiert", DayAggregation),
     ("5-Minuten-Rundung rechnet Start und Ende korrekt", FiveMinuteRounding),
     ("5-Minuten-Rundung folgt den exakten Grenzzeiten", FiveMinuteBoundaryExamples),
+    ("Laufender Timer zeigt die rohe Erfassungszeit", ActiveTimerShowsRecordedDuration),
     ("5-Minuten-Rundung erzeugt keine negative Zeit", RoundedShortInterval),
     ("Laufende Rundung wächst nur im Fünf-Minuten-Rhythmus", ActiveRoundedInterval),
     ("Details entsprechen dem Ist-Wert der Periode", DetailsMatchPeriodActual),
@@ -103,6 +104,21 @@ static void FiveMinuteBoundaryExamples()
 
     data.Intervals.Add(Rounded(startAt1228, at1232));
     Equal(TimeSpan.Zero, TimeCalculator.ActualForDay(data, date, date.ToDateTime(new TimeOnly(13, 0))));
+}
+
+static void ActiveTimerShowsRecordedDuration()
+{
+    var date = new DateOnly(2026, 7, 20);
+    var startedAt = date.ToDateTime(new TimeOnly(12, 28));
+    var interval = new WorkInterval
+    {
+        StartedAt = startedAt,
+        UsesFiveMinuteRounding = true,
+        RoundedStartedAt = TimeCalculator.RoundUpToFiveMinutes(startedAt)
+    };
+
+    Equal(TimeSpan.FromMinutes(1), TimeCalculator.RecordedDuration(interval, date.ToDateTime(new TimeOnly(12, 29))));
+    Equal(TimeSpan.Zero, TimeCalculator.EffectiveEnd(interval, date.ToDateTime(new TimeOnly(12, 29)))-TimeCalculator.EffectiveStart(interval));
 }
 
 static void RoundedShortInterval()
