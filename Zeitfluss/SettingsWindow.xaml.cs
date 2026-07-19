@@ -25,6 +25,7 @@ public partial class SettingsWindow : Window
         };
         WeeklyText.Text = data.Settings.WeeklyHours.ToString("0.##", _culture);
         foreach (var (day, field) in _fields) field.Text = data.Settings.DailyHours.GetValueOrDefault(day).ToString("0.##", _culture);
+        FiveMinuteRoundingCheckBox.IsChecked = data.Settings.UseFiveMinuteRounding;
     }
 
     private void Save_Click(object sender, RoutedEventArgs e)
@@ -41,6 +42,7 @@ public partial class SettingsWindow : Window
         if (Math.Abs(total - weekly) > 0.005) { ValidationText.Text = $"Die Tagessollzeiten ergeben {total:0.##} Stunden. Sie müssen den {weekly:0.##} Wochenstunden entsprechen."; return; }
         _data.Settings.WeeklyHours = weekly;
         _data.Settings.DailyHours = values;
+        _data.Settings.UseFiveMinuteRounding = FiveMinuteRoundingCheckBox.IsChecked == true;
         DialogResult = true;
     }
 

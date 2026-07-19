@@ -6,6 +6,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Zeitfluss;
 using Zeitfluss.Models;
+using Zeitfluss.Services;
 
 internal static class Program
 {
@@ -30,6 +31,12 @@ internal static class Program
         finishedData.Intervals.Add(new WorkInterval { StartedAt = now.AddHours(-8), EndedAt = now.AddMinutes(-20) });
         finishedData.FinishedDays.Add(today);
 
+        var roundedData = TestData(today);
+        roundedData.Settings.UseFiveMinuteRounding = true;
+        var roundedStart = today.ToDateTime(new TimeOnly(12, 26));
+        var roundedEnd = today.ToDateTime(new TimeOnly(13, 2));
+        roundedData.Intervals.Add(new WorkInterval { StartedAt = roundedStart, EndedAt = roundedEnd, UsesFiveMinuteRounding = true, RoundedStartedAt = TimeCalculator.RoundUpToFiveMinutes(roundedStart), RoundedEndedAt = TimeCalculator.RoundDownToFiveMinutes(roundedEnd) });
+
         Render(new MainWindow(activeData, false), Path.Combine(outputDirectory, "main-active.png"));
         Render(new MainWindow(pausedData, false), Path.Combine(outputDirectory, "main-paused.png"));
         Render(new MainWindow(finishedData, false), Path.Combine(outputDirectory, "main-finished.png"));
@@ -41,6 +48,10 @@ internal static class Program
         VerifyCompactRoundTrip(activeData);
 
         Render(new SettingsWindow(activeData) { ShowInTaskbar = false }, Path.Combine(outputDirectory, "settings-window.png"));
+        Render(new SettingsWindow(roundedData) { ShowInTaskbar = false }, Path.Combine(outputDirectory, "settings-rounding.png"), window =>
+        {
+            ((ScrollViewer)window.FindName("SettingsScroll")).ScrollToVerticalOffset(250);
+        });
         Render(new SettingsWindow(pausedData) { ShowInTaskbar = false }, Path.Combine(outputDirectory, "settings-backup.png"), window =>
         {
             var scroll = (ScrollViewer)window.FindName("SettingsScroll");
@@ -53,6 +64,8 @@ internal static class Program
             var button = (Button)window.FindName("DayButton");
             button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         });
+        var roundedPeriod = TimeCalculator.Periods(roundedData, today, now, PeriodKind.Day).First(period => period.Start == today);
+        Render(new IntervalDetailsWindow(roundedData, roundedPeriod) { ShowInTaskbar = false }, Path.Combine(outputDirectory, "interval-details.png"));
         app.Shutdown();
         Console.WriteLine(Path.GetFullPath(outputDirectory));
     }

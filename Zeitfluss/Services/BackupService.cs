@@ -102,6 +102,10 @@ public static class BackupService
             throw new InvalidDataException("Die Sicherung enthält mehrere gleichzeitig offene Arbeitsintervalle.");
         if (data.Intervals.Any(x => x.Id == Guid.Empty || x.StartedAt == default || x.EndedAt < x.StartedAt))
             throw new InvalidDataException("Die Sicherung enthält ein ungültiges Arbeitsintervall.");
+        if (data.Intervals.Any(x => !x.UsesFiveMinuteRounding && (x.RoundedStartedAt is not null || x.RoundedEndedAt is not null)) ||
+            data.Intervals.Any(x => x.UsesFiveMinuteRounding && x.RoundedStartedAt is null) ||
+            data.Intervals.Any(x => x.RoundedEndedAt is not null && x.EndedAt is null))
+            throw new InvalidDataException("Die Sicherung enthält inkonsistente Rundungsdaten.");
         if (data.Intervals.Select(x => x.Id).Distinct().Count() != data.Intervals.Count)
             throw new InvalidDataException("Die Sicherung enthält doppelte Arbeitsintervalle.");
         if (data.Intervals.Any(x => DateOnly.FromDateTime(x.StartedAt) < data.TrackingStartedOn) || data.FinishedDays.Any(x => x < data.TrackingStartedOn))

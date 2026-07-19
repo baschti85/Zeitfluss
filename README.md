@@ -12,6 +12,8 @@ Zeitfluss ist eine kleine, lokale Arbeitszeiterfassung für Windows auf Basis vo
 - Frei verschiebbares Hauptfenster und ein 146 × 48 Pixel großer Kompaktmodus rechts oben
 - Kompaktanzeige mit heutiger Gesamtarbeitszeit und grünem Statuspunkt bei laufender Erfassung
 - Kompaktanzeige per Ziehen frei verschiebbar; ihre Position wird separat gespeichert
+- Optionaler 5-Minuten-Rhythmus: Beginn wird auf-, Ende abgerundet; die Rohzeit bleibt in den Details sichtbar
+- Details je Tages-, Wochen-, Monats- oder Jahresperiode mit allen einzelnen Arbeitsintervallen
 - Verlustfreie `.zeitfluss`-Datensicherung für Import und Export beim PC-Wechsel
 - Lokale, atomar gespeicherte JSON-Daten ohne Cloud oder Benutzerkonto
 
@@ -36,6 +38,7 @@ Beim ersten Start beginnt die Saldoberechnung am aktuellen Tag. Die Daten werden
 5. Über das Minus oben rechts wird Zeitfluss zum kleinen Zeitindikator. Er kann mit gedrückter Maustaste verschoben werden; ein kurzer Klick stellt das Hauptfenster wieder her.
 6. Unter **Auswertung** zwischen Tagen, Wochen, Monaten und Jahren wechseln oder alle Tagesdaten als CSV exportieren.
 7. Unter **Einstellungen → Datensicherung** lässt sich der vollständige Bestand als `.zeitfluss`-Datei exportieren und auf einem anderen PC importieren. Vor einem Import erstellt die App automatisch eine Vor-Import-Sicherung in `%LOCALAPPDATA%\Zeitfluss`.
+8. Unter **Einstellungen → 5-Minuten-Rhythmus** kann die Rundung für künftig gestartete Arbeitsphasen aktiviert werden. Details zeigen stets die angerechnete und die Rohzeit.
 
 CSV-Dateien sind für Excel und Auswertungen gedacht. Für eine vollständige Wiederherstellung müssen `.zeitfluss`-Sicherungen verwendet werden. Vor einem Sicherungsexport muss eine laufende Arbeitszeit pausiert werden.
 
@@ -55,3 +58,7 @@ Die Render-Smoke-Tests prüfen aktive, pausierte, beendete und kompakte Zuständ
 ![Zeitfluss Hauptfenster](docs/screenshots/zeitfluss-main.png)
 
 ![Datensicherung in den Einstellungen](docs/screenshots/zeitfluss-backup.png)
+
+![5-Minuten-Rhythmus](docs/screenshots/zeitfluss-rounding.png)
+
+![Intervall-Details](docs/screenshots/zeitfluss-details.png)

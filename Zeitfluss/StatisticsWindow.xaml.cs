@@ -27,7 +27,7 @@ public partial class StatisticsWindow : Window
         TotalTargetText.Text = TimeCalculator.FormatDuration(TimeSpan.FromTicks(days.Sum(x => x.Target.Ticks)));
         TotalBalanceText.Text = last is null || last.Cumulative == TimeSpan.Zero ? "±00:00" : TimeCalculator.FormatDuration(last.Cumulative, true);
         TotalBalanceText.Foreground = last?.Cumulative < TimeSpan.Zero ? (Brush)FindResource("Negative") : last?.Cumulative > TimeSpan.Zero ? (Brush)FindResource("Positive") : (Brush)FindResource("Ink");
-        PeriodList.ItemsSource = TimeCalculator.Periods(_data, today, now, _kind).Select(x => new PeriodRow(x.Label, TimeCalculator.FormatDuration(x.Target), TimeCalculator.FormatDuration(x.Actual), TimeCalculator.FormatDuration(x.Balance, true), TimeCalculator.FormatDuration(x.Cumulative, true))).ToList();
+        PeriodList.ItemsSource = TimeCalculator.Periods(_data, today, now, _kind).Select(x => new PeriodRow(x, x.Label, TimeCalculator.FormatDuration(x.Target), TimeCalculator.FormatDuration(x.Actual), TimeCalculator.FormatDuration(x.Balance, true), TimeCalculator.FormatDuration(x.Cumulative, true))).ToList();
         ApplyTabStyle(DayButton, _kind == PeriodKind.Day); ApplyTabStyle(WeekButton, _kind == PeriodKind.Week); ApplyTabStyle(MonthButton, _kind == PeriodKind.Month); ApplyTabStyle(YearButton, _kind == PeriodKind.Year);
     }
 
@@ -36,6 +36,11 @@ public partial class StatisticsWindow : Window
     private void Week_Click(object sender, RoutedEventArgs e) { _kind = PeriodKind.Week; Refresh(); }
     private void Month_Click(object sender, RoutedEventArgs e) { _kind = PeriodKind.Month; Refresh(); }
     private void Year_Click(object sender, RoutedEventArgs e) { _kind = PeriodKind.Year; Refresh(); }
+    private void Details_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as Button)?.DataContext is not PeriodRow row) return;
+        new IntervalDetailsWindow(_data, row.Summary) { Owner = this }.ShowDialog();
+    }
     private void Export_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new SaveFileDialog { Title = "Arbeitszeiten exportieren", Filter = "CSV-Datei (*.csv)|*.csv", FileName = $"Arbeitszeiten-{DateTime.Now:yyyy-MM-dd}.csv", DefaultExt = ".csv" };
@@ -44,5 +49,5 @@ public partial class StatisticsWindow : Window
         catch (Exception ex) { MessageBox.Show($"Der Export konnte nicht gespeichert werden.\n\n{ex.Message}", "Zeitfluss", MessageBoxButton.OK, MessageBoxImage.Error); }
     }
 
-    private sealed record PeriodRow(string Label, string Target, string Actual, string Balance, string Cumulative);
+    private sealed record PeriodRow(PeriodSummary Summary, string Label, string Target, string Actual, string Balance, string Cumulative);
 }

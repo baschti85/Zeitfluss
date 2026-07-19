@@ -22,6 +22,7 @@
                     <GridViewColumn Header="ZEITRAUM" Width="190" DisplayMemberBinding="{Binding Label}" /><GridViewColumn Header="SOLL" Width="105" DisplayMemberBinding="{Binding Target}" />
                     <GridViewColumn Header="IST" Width="105" DisplayMemberBinding="{Binding Actual}" /><GridViewColumn Header="DIFFERENZ" Width="115" DisplayMemberBinding="{Binding Balance}" />
                     <GridViewColumn Header="SALDO GESAMT" Width="125" DisplayMemberBinding="{Binding Cumulative}" />
+                    <GridViewColumn Header="" Width="90"><GridViewColumn.CellTemplate><DataTemplate><Button Style="{StaticResource GhostButton}" Content="Details" Click="Details_Click" /></DataTemplate></GridViewColumn.CellTemplate></GridViewColumn>
                 </GridView></ListView.View>
             </ListView>
         </Border>

@@ -8,6 +8,10 @@ var tests = new (string Name, Action Run)[]
     ("Guthaben wird tagübergreifend fortgeschrieben", CumulativeBalance),
     ("Kalenderwochen werden getrennt aggregiert", WeekAggregation),
     ("Tage werden einzeln und absteigend aggregiert", DayAggregation),
+    ("5-Minuten-Rundung rechnet Start und Ende korrekt", FiveMinuteRounding),
+    ("5-Minuten-Rundung erzeugt keine negative Zeit", RoundedShortInterval),
+    ("Laufende Rundung wächst nur im Fünf-Minuten-Rhythmus", ActiveRoundedInterval),
+    ("Details entsprechen dem Ist-Wert der Periode", DetailsMatchPeriodActual),
     ("Sicherung wird verlustfrei exportiert und importiert", BackupRoundTrip),
     ("Beschädigte Sicherung wird abgewiesen", InvalidBackupRejected),
     ("Import behält lokale Fensterpositionen", BackupKeepsLocalPlacement),
@@ -77,12 +81,59 @@ static void DayAggregation()
     Equal(TimeSpan.FromHours(1), periods[1].Balance);
 }
 
+static void FiveMinuteRounding()
+{
+    var date = new DateOnly(2026, 7, 20); var data = Data(date);
+    data.Intervals.Add(Rounded(date.ToDateTime(new TimeOnly(12, 26)), date.ToDateTime(new TimeOnly(13, 2))));
+    Equal(TimeSpan.FromMinutes(30), TimeCalculator.ActualForDay(data, date, date.ToDateTime(new TimeOnly(14, 0))));
+    if (TimeCalculator.RoundUpToFiveMinutes(date.ToDateTime(new TimeOnly(12, 26))) != date.ToDateTime(new TimeOnly(12, 30))) throw new InvalidOperationException("Start wurde nicht aufgerundet");
+    if (TimeCalculator.RoundDownToFiveMinutes(date.ToDateTime(new TimeOnly(13, 2))) != date.ToDateTime(new TimeOnly(13, 0))) throw new InvalidOperationException("Ende wurde nicht abgerundet");
+}
+
+static void RoundedShortInterval()
+{
+    var date = new DateOnly(2026, 7, 20); var data = Data(date);
+    data.Intervals.Add(Rounded(date.ToDateTime(new TimeOnly(12, 26)), date.ToDateTime(new TimeOnly(12, 27))));
+    Equal(TimeSpan.Zero, TimeCalculator.ActualForDay(data, date, date.ToDateTime(new TimeOnly(13, 0))));
+    var detail = TimeCalculator.DetailsForPeriod(data, date, date, date.ToDateTime(new TimeOnly(13, 0))).Single();
+    Equal(TimeSpan.Zero, detail.Duration);
+    if (detail.RoundingHint.Length == 0) throw new InvalidOperationException("Rundungshinweis fehlt");
+}
+
+static void ActiveRoundedInterval()
+{
+    var date = new DateOnly(2026, 7, 20); var interval = new WorkInterval { StartedAt = date.ToDateTime(new TimeOnly(12, 26)), UsesFiveMinuteRounding = true, RoundedStartedAt = date.ToDateTime(new TimeOnly(12, 30)) };
+    Equal(TimeSpan.Zero, TimeCalculator.EffectiveEnd(interval, date.ToDateTime(new TimeOnly(12, 34))) - TimeCalculator.EffectiveStart(interval));
+    Equal(TimeSpan.FromMinutes(5), TimeCalculator.EffectiveEnd(interval, date.ToDateTime(new TimeOnly(12, 35))) - TimeCalculator.EffectiveStart(interval));
+}
+
+static void DetailsMatchPeriodActual()
+{
+    var first = new DateOnly(2026, 7, 20); var second = first.AddDays(1); var data = Data(first);
+    data.Intervals.Add(Rounded(first.ToDateTime(new TimeOnly(23, 58)), second.ToDateTime(new TimeOnly(0, 7))));
+    var now = second.ToDateTime(new TimeOnly(1, 0));
+    var details = TimeCalculator.DetailsForPeriod(data, first, second, now);
+    Equal(TimeSpan.FromMinutes(5), TimeSpan.FromTicks(details.Sum(x => x.Duration.Ticks)));
+    Equal(TimeSpan.Zero, TimeCalculator.ActualForDay(data, first, now));
+    Equal(TimeSpan.FromMinutes(5), TimeCalculator.ActualForDay(data, second, now));
+}
+
+static WorkInterval Rounded(DateTime start, DateTime end) => new()
+{
+    StartedAt = start,
+    EndedAt = end,
+    UsesFiveMinuteRounding = true,
+    RoundedStartedAt = TimeCalculator.RoundUpToFiveMinutes(start),
+    RoundedEndedAt = TimeCalculator.RoundDownToFiveMinutes(end)
+};
+
 static void BackupRoundTrip()
 {
     var date = new DateOnly(2026, 7, 20); var data = Data(date);
     data.Settings.CompactWindowLeft = 321.5;
     data.Settings.CompactWindowTop = 87.25;
-    data.Intervals.Add(new WorkInterval { StartedAt = date.ToDateTime(new TimeOnly(8, 0)), EndedAt = date.ToDateTime(new TimeOnly(16, 30)) });
+    data.Settings.UseFiveMinuteRounding = true;
+    data.Intervals.Add(Rounded(date.ToDateTime(new TimeOnly(8, 1)), date.ToDateTime(new TimeOnly(16, 32))));
     data.FinishedDays.Add(date);
     var path = Path.Combine(Path.GetTempPath(), $"zeitfluss-{Guid.NewGuid():N}.zeitfluss");
     try
@@ -91,6 +142,7 @@ static void BackupRoundTrip()
         var imported = BackupService.Import(path);
         if (imported.TrackingStartedOn != date || imported.Intervals.Count != 1 || !imported.FinishedDays.Contains(date)) throw new InvalidOperationException("Arbeitszeitdaten fehlen nach dem Import");
         if (imported.Settings.CompactWindowLeft != 321.5 || imported.Settings.CompactWindowTop != 87.25) throw new InvalidOperationException("Kompaktposition fehlt nach dem Import");
+        if (!imported.Settings.UseFiveMinuteRounding || !imported.Intervals[0].UsesFiveMinuteRounding || imported.Intervals[0].RoundedStartedAt is null) throw new InvalidOperationException("Rundungseinstellung fehlt nach dem Import");
     }
     finally { if (File.Exists(path)) File.Delete(path); }
 }

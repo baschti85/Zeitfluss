@@ -5,14 +5,32 @@ namespace Zeitfluss.Services;
 
 public static class TimeCalculator
 {
+    public static DateTime RoundUpToFiveMinutes(DateTime value)
+    {
+        var truncated = new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute / 5 * 5, 0, value.Kind);
+        return truncated < value ? truncated.AddMinutes(5) : truncated;
+    }
+
+    public static DateTime RoundDownToFiveMinutes(DateTime value) =>
+        new(value.Year, value.Month, value.Day, value.Hour, value.Minute / 5 * 5, 0, value.Kind);
+
+    public static DateTime EffectiveStart(WorkInterval interval) => interval.RoundedStartedAt ?? interval.StartedAt;
+
+    public static DateTime EffectiveEnd(WorkInterval interval, DateTime now)
+    {
+        var end = interval.RoundedEndedAt ?? interval.EndedAt ?? (interval.UsesFiveMinuteRounding ? RoundDownToFiveMinutes(now) : now);
+        return end < EffectiveStart(interval) ? EffectiveStart(interval) : end;
+    }
+
     public static TimeSpan ActualForDay(AppData data, DateOnly date, DateTime now)
     {
         var dayStart = date.ToDateTime(TimeOnly.MinValue);
         var dayEnd = dayStart.AddDays(1);
         var ticks = data.Intervals.Sum(interval =>
         {
-            var end = interval.EndedAt ?? now;
-            var overlapStart = interval.StartedAt > dayStart ? interval.StartedAt : dayStart;
+            var end = EffectiveEnd(interval, now);
+            var effectiveStart = EffectiveStart(interval);
+            var overlapStart = effectiveStart > dayStart ? effectiveStart : dayStart;
             var overlapEnd = end < dayEnd ? end : dayEnd;
             return overlapEnd > overlapStart ? (overlapEnd - overlapStart).Ticks : 0;
         });
@@ -36,12 +54,12 @@ public static class TimeCalculator
             var dayStart = date.ToDateTime(TimeOnly.MinValue);
             var dayEnd = dayStart.AddDays(1);
             var intervals = string.Join(" | ", data.Intervals
-                .Where(x => x.StartedAt < dayEnd && (x.EndedAt ?? now) > dayStart)
-                .OrderBy(x => x.StartedAt)
+                .Where(x => EffectiveStart(x) < dayEnd && EffectiveEnd(x, now) > dayStart)
+                .OrderBy(EffectiveStart)
                 .Select(x =>
                 {
-                    var start = x.StartedAt < dayStart ? dayStart : x.StartedAt;
-                    var end = x.EndedAt ?? now;
+                    var start = EffectiveStart(x) < dayStart ? dayStart : EffectiveStart(x);
+                    var end = EffectiveEnd(x, now);
                     var endLabel = x.EndedAt is null ? "offen" : end >= dayEnd ? "24:00" : end.ToString("HH:mm");
                     return $"{start:HH:mm}-{endLabel}";
                 }));
@@ -64,6 +82,39 @@ public static class TimeCalculator
             })
             .OrderByDescending(x => x.Start)
             .ToList();
+    }
+
+    public static IReadOnlyList<IntervalDetail> DetailsForPeriod(AppData data, DateOnly start, DateOnly end, DateTime now)
+    {
+        var periodStart = start.ToDateTime(TimeOnly.MinValue);
+        var periodEnd = end.AddDays(1).ToDateTime(TimeOnly.MinValue);
+        var details = new List<IntervalDetail>();
+        foreach (var interval in data.Intervals
+            .Where(interval => interval.StartedAt < periodEnd && (interval.EndedAt ?? now) > periodStart)
+            .OrderBy(interval => interval.StartedAt))
+        {
+            var actualEnd = interval.EndedAt ?? now;
+            var firstDate = DateOnly.FromDateTime(interval.StartedAt < periodStart ? periodStart : interval.StartedAt);
+            var lastDate = DateOnly.FromDateTime(actualEnd >= periodEnd ? periodEnd.AddTicks(-1) : actualEnd);
+            for (var date = firstDate; date <= lastDate; date = date.AddDays(1))
+            {
+                var dayStart = date.ToDateTime(TimeOnly.MinValue);
+                var dayEnd = dayStart.AddDays(1);
+                var rawStart = interval.StartedAt > dayStart ? interval.StartedAt : dayStart;
+                var rawEnd = actualEnd < dayEnd ? actualEnd : dayEnd;
+                var effectiveStart = EffectiveStart(interval);
+                effectiveStart = effectiveStart < dayStart ? dayStart : effectiveStart > dayEnd ? dayEnd : effectiveStart;
+                var effectiveEnd = EffectiveEnd(interval, now);
+                effectiveEnd = effectiveEnd < dayStart ? dayStart : effectiveEnd > dayEnd ? dayEnd : effectiveEnd;
+                if (effectiveEnd < effectiveStart) effectiveEnd = effectiveStart;
+                var rawEndLabel = interval.EndedAt is null && date == DateOnly.FromDateTime(now) ? "offen" : rawEnd == dayEnd ? "24:00" : rawEnd.ToString("HH:mm");
+                var hint = interval.UsesFiveMinuteRounding
+                    ? $"5-Min.-Rundung · Roh: {rawStart:HH:mm}–{rawEndLabel}"
+                    : string.Empty;
+                details.Add(new IntervalDetail(date, effectiveStart, interval.EndedAt is null && date == DateOnly.FromDateTime(now) ? null : effectiveEnd, effectiveEnd - effectiveStart, hint));
+            }
+        }
+        return details;
     }
 
     public static string FormatDuration(TimeSpan value, bool sign = false)

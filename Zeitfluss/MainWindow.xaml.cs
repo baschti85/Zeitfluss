@@ -64,7 +64,7 @@ public partial class MainWindow : Window
         var actual = TimeCalculator.ActualForDay(_data, today, now); var target = TimeCalculator.TargetForDay(_data, today);
         var balance = TimeCalculator.Daily(_data, today, now).LastOrDefault()?.Cumulative ?? TimeSpan.Zero;
         DateText.Text = now.ToString("dddd, d. MMMM", CultureInfo.GetCultureInfo("de-DE"));
-        var current = active is null ? actual : now - active.StartedAt;
+        var current = active is null ? actual : TimeCalculator.EffectiveEnd(active, now) - TimeCalculator.EffectiveStart(active);
         ElapsedText.Text = active is null ? TimeCalculator.FormatDuration(actual) : $"{(int)current.TotalHours:00}:{current.Minutes:00}:{current.Seconds:00}";
         TodayActualText.Text = TimeCalculator.FormatDuration(actual); TodayTargetText.Text = TimeCalculator.FormatDuration(target);
         CompactTimeText.Text = TimeCalculator.FormatDuration(actual);
@@ -72,17 +72,31 @@ public partial class MainWindow : Window
         BalanceText.Text = balance == TimeSpan.Zero ? "±00:00" : TimeCalculator.FormatDuration(balance, true);
         BalanceText.Foreground = balance < TimeSpan.Zero ? (Brush)FindResource("Negative") : balance > TimeSpan.Zero ? (Brush)FindResource("Positive") : (Brush)FindResource("Ink");
         var hasToday = _data.Intervals.Any(x => DateOnly.FromDateTime(x.StartedAt) == today); var finished = _data.FinishedDays.Contains(today);
-        StatusText.Text = active is not null ? $"Läuft seit {active.StartedAt:HH:mm} Uhr" : finished ? "Feierabend" : hasToday ? "Pausiert" : "Bereit für den Tag";
+        StatusText.Text = active is not null ? $"Läuft seit {active.StartedAt:HH:mm} Uhr{(active.UsesFiveMinuteRounding ? " · 5-Min.-Rhythmus" : string.Empty)}" : finished ? "Feierabend" : hasToday ? "Pausiert" : "Bereit für den Tag";
         StartButton.Content = active is not null ? "Arbeitszeit läuft" : finished ? "Nochmals beginnen" : hasToday ? "Arbeit fortsetzen" : "Arbeit beginnen";
         StartButton.IsEnabled = active is null; PauseButton.IsEnabled = active is not null; EndButton.IsEnabled = active is not null || hasToday && !finished;
         var week = TimeCalculator.Periods(_data, today, now, PeriodKind.Week).FirstOrDefault();
         WeekText.Text = week is null ? $"Woche · 00:00 / {_data.Settings.WeeklyHours:0.##} h" : $"Woche · {TimeCalculator.FormatDuration(week.Actual)} / {_data.Settings.WeeklyHours:0.##} h";
     }
 
-    private void StartButton_Click(object sender, RoutedEventArgs e) { if (ActiveInterval is not null) return; var now = DateTime.Now; _data.FinishedDays.Remove(DateOnly.FromDateTime(now)); _data.Intervals.Add(new WorkInterval { StartedAt = now }); SaveAndRefresh(); }
+    private void StartButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (ActiveInterval is not null) return;
+        var now = DateTime.Now;
+        var rounded = _data.Settings.UseFiveMinuteRounding;
+        _data.FinishedDays.Remove(DateOnly.FromDateTime(now));
+        _data.Intervals.Add(new WorkInterval { StartedAt = now, UsesFiveMinuteRounding = rounded, RoundedStartedAt = rounded ? TimeCalculator.RoundUpToFiveMinutes(now) : null });
+        SaveAndRefresh();
+    }
     private void PauseButton_Click(object sender, RoutedEventArgs e) { CloseActiveInterval(); SaveAndRefresh(); }
     private void EndButton_Click(object sender, RoutedEventArgs e) { CloseActiveInterval(); _data.FinishedDays.Add(DateOnly.FromDateTime(DateTime.Now)); SaveAndRefresh(); }
-    private void CloseActiveInterval() { if (ActiveInterval is { } active) active.EndedAt = DateTime.Now; }
+    private void CloseActiveInterval()
+    {
+        if (ActiveInterval is not { } active) return;
+        var now = DateTime.Now;
+        active.EndedAt = now;
+        active.RoundedEndedAt = active.UsesFiveMinuteRounding ? TimeCalculator.RoundDownToFiveMinutes(now) : null;
+    }
     private void SaveAndRefresh() { if (_persistChanges) _store.Save(_data); Refresh(); }
     private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) { if (e.ButtonState == MouseButtonState.Pressed) DragMove(); }
     private void PinButton_Click(object sender, RoutedEventArgs e) { Topmost = !Topmost; _data.Settings.AlwaysOnTop = Topmost; PinButton.Opacity = Topmost ? 1 : 0.45; SaveAndRefresh(); }
