@@ -31,7 +31,7 @@
                     <Grid><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel>
                             <TextBlock Text="5-Minuten-Rhythmus" FontWeight="SemiBold" />
-                            <TextBlock Text="Startzeiten werden auf-, Endzeiten abgerundet. Das kann zu weniger angerechneter Zeit führen." TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedInk}" Margin="0,4,16,0" />
+                            <TextBlock Text="Start 12:28 → 12:30 · Start 12:32 → 12:35 · Ende 12:32 → 12:30. Gilt für neue Arbeitszeiten und kann zu weniger angerechneter Zeit führen." TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedInk}" Margin="0,4,16,0" />
                         </StackPanel>
                         <CheckBox x:Name="FiveMinuteRoundingCheckBox" Grid.Column="1" VerticalAlignment="Center" ToolTip="5-Minuten-Rhythmus aktivieren" />
                     </Grid>

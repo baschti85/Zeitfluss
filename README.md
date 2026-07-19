@@ -12,7 +12,7 @@ Zeitfluss ist eine kleine, lokale Arbeitszeiterfassung für Windows auf Basis vo
 - Frei verschiebbares Hauptfenster und ein 146 × 48 Pixel großer Kompaktmodus rechts oben
 - Kompaktanzeige mit heutiger Gesamtarbeitszeit und grünem Statuspunkt bei laufender Erfassung
 - Kompaktanzeige per Ziehen frei verschiebbar; ihre Position wird separat gespeichert
-- Optionaler 5-Minuten-Rhythmus: Beginn wird auf-, Ende abgerundet; die Rohzeit bleibt in den Details sichtbar
+- Optionaler 5-Minuten-Rhythmus: Beginn wird auf-, Ende abgerundet; die Rohzeit bleibt in den Details sichtbar. Beispiele: Start um 12:28 zählt ab 12:30, Start um 12:32 ab 12:35, Ende um 12:32 bis 12:30.
 - Details je Tages-, Wochen-, Monats- oder Jahresperiode mit allen einzelnen Arbeitsintervallen
 - Verlustfreie `.zeitfluss`-Datensicherung für Import und Export beim PC-Wechsel
 - Lokale, atomar gespeicherte JSON-Daten ohne Cloud oder Benutzerkonto

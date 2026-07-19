@@ -9,6 +9,7 @@ var tests = new (string Name, Action Run)[]
     ("Kalenderwochen werden getrennt aggregiert", WeekAggregation),
     ("Tage werden einzeln und absteigend aggregiert", DayAggregation),
     ("5-Minuten-Rundung rechnet Start und Ende korrekt", FiveMinuteRounding),
+    ("5-Minuten-Rundung folgt den exakten Grenzzeiten", FiveMinuteBoundaryExamples),
     ("5-Minuten-Rundung erzeugt keine negative Zeit", RoundedShortInterval),
     ("Laufende Rundung wächst nur im Fünf-Minuten-Rhythmus", ActiveRoundedInterval),
     ("Details entsprechen dem Ist-Wert der Periode", DetailsMatchPeriodActual),
@@ -88,6 +89,20 @@ static void FiveMinuteRounding()
     Equal(TimeSpan.FromMinutes(30), TimeCalculator.ActualForDay(data, date, date.ToDateTime(new TimeOnly(14, 0))));
     if (TimeCalculator.RoundUpToFiveMinutes(date.ToDateTime(new TimeOnly(12, 26))) != date.ToDateTime(new TimeOnly(12, 30))) throw new InvalidOperationException("Start wurde nicht aufgerundet");
     if (TimeCalculator.RoundDownToFiveMinutes(date.ToDateTime(new TimeOnly(13, 2))) != date.ToDateTime(new TimeOnly(13, 0))) throw new InvalidOperationException("Ende wurde nicht abgerundet");
+}
+
+static void FiveMinuteBoundaryExamples()
+{
+    var date = new DateOnly(2026, 7, 20); var data = Data(date);
+    var startAt1228 = date.ToDateTime(new TimeOnly(12, 28));
+    var at1232 = date.ToDateTime(new TimeOnly(12, 32));
+
+    if (TimeCalculator.RoundUpToFiveMinutes(startAt1228) != date.ToDateTime(new TimeOnly(12, 30))) throw new InvalidOperationException("Start um 12:28 muss erst ab 12:30 zählen");
+    if (TimeCalculator.RoundUpToFiveMinutes(at1232) != date.ToDateTime(new TimeOnly(12, 35))) throw new InvalidOperationException("Start um 12:32 muss erst ab 12:35 zählen");
+    if (TimeCalculator.RoundDownToFiveMinutes(at1232) != date.ToDateTime(new TimeOnly(12, 30))) throw new InvalidOperationException("Ende um 12:32 darf nur bis 12:30 zählen");
+
+    data.Intervals.Add(Rounded(startAt1228, at1232));
+    Equal(TimeSpan.Zero, TimeCalculator.ActualForDay(data, date, date.ToDateTime(new TimeOnly(13, 0))));
 }
 
 static void RoundedShortInterval()
