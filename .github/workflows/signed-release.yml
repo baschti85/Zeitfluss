@@ -1,0 +1,85 @@
+name: Signierte Windows-Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: GitHub-Release-Tag für die signierte Version
+        required: true
+        default: v1.0.1
+
+permissions:
+  contents: write
+
+jobs:
+  build-sign-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Quellcode auschecken
+        uses: actions/checkout@v6
+
+      - name: .NET 10 einrichten
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Abhängigkeiten wiederherstellen
+        run: dotnet restore Zeitfluss.slnx
+
+      - name: Logiktests ausführen
+        run: dotnet run --project Zeitfluss.LogicTests/Zeitfluss.LogicTests.csproj -c Release --no-restore
+
+      - name: Windows-EXE erstellen
+        run: >-
+          dotnet publish Zeitfluss/Zeitfluss.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:EnableCompressionInSingleFile=false
+          -p:DebugType=None
+          -p:DebugSymbols=false
+          -o unsigned
+
+      - name: Unsignierte EXE als Build-Artefakt speichern
+        id: upload-unsigned
+        uses: actions/upload-artifact@v7
+        with:
+          name: zeitfluss-unsigned
+          path: unsigned/Zeitfluss.exe
+          if-no-files-found: error
+
+      - name: SignPath-Signierung anfordern
+        uses: signpath/github-action-submit-signing-request@v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed
+
+      - name: Authenticode-Signatur prüfen
+        shell: pwsh
+        run: |
+          $signature = Get-AuthenticodeSignature -LiteralPath 'signed/Zeitfluss.exe'
+          if ($signature.Status -ne 'Valid') {
+            throw "Die Authenticode-Signatur ist nicht gültig: $($signature.StatusMessage)"
+          }
+          $signature | Format-List Status, StatusMessage, SignerCertificate, TimeStamperCertificate
+          Get-FileHash -LiteralPath 'signed/Zeitfluss.exe' -Algorithm SHA256
+
+      - name: Signierte EXE im GitHub-Release veröffentlichen
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = '${{ inputs.release_tag }}'
+          if (gh release view $tag --repo '${{ github.repository }}' 2>$null) {
+            gh release upload $tag 'signed/Zeitfluss.exe#Zeitfluss.exe' --clobber --repo '${{ github.repository }}'
+          }
+          else {
+            gh release create $tag 'signed/Zeitfluss.exe#Zeitfluss.exe' --target '${{ github.sha }}' --title "Zeitfluss $tag" --notes 'Vertrauenswürdig signierte Windows-Version von Zeitfluss.' --repo '${{ github.repository }}'
+          }

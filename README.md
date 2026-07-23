@@ -4,6 +4,8 @@ Zeitfluss ist eine kleine, lokale Arbeitszeiterfassung für Windows auf Basis vo
 
 Zeitfluss ist unter der [MIT-Lizenz](LICENSE) veröffentlicht. Für zukünftige Windows-Releases ist die Code-Signierung über die [SignPath Foundation](https://signpath.org/) vorgesehen.
 
+Der Workflow **Signierte Windows-Version** baut Releases reproduzierbar auf GitHub Actions, übermittelt ausschließlich das Build-Artefakt an SignPath und veröffentlicht es erst nach erfolgreicher Authenticode-Prüfung.
+
 ## Funktionen
 
 - Mehrere Arbeitsintervalle pro Tag mit **Arbeit beginnen**, **Pause/Fortsetzen** und **Feierabend**
