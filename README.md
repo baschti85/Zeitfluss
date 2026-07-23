@@ -2,6 +2,8 @@
 
 Zeitfluss ist eine kleine, lokale Arbeitszeiterfassung für Windows auf Basis von .NET 10 und WPF.
 
+Zeitfluss ist unter der [MIT-Lizenz](LICENSE) veröffentlicht. Für zukünftige Windows-Releases ist die Code-Signierung über die [SignPath Foundation](https://signpath.org/) vorgesehen.
+
 ## Funktionen
 
 - Mehrere Arbeitsintervalle pro Tag mit **Arbeit beginnen**, **Pause/Fortsetzen** und **Feierabend**
