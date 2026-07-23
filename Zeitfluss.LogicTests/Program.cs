@@ -14,6 +14,11 @@ var tests = new (string Name, Action Run)[]
     ("5-Minuten-Rundung erzeugt keine negative Zeit", RoundedShortInterval),
     ("Laufende Rundung wächst nur im Fünf-Minuten-Rhythmus", ActiveRoundedInterval),
     ("Details entsprechen dem Ist-Wert der Periode", DetailsMatchPeriodActual),
+    ("Vergessene offene Erfassung kann rückwirkend geschlossen werden", ForgottenIntervalCanBeClosed),
+    ("Zeitkorrektur verhindert Überschneidungen", IntervalEditRejectsOverlap),
+    ("Zeitkorrektur erlaubt direkt angrenzende Intervalle", IntervalEditAllowsAdjacentIntervals),
+    ("Abgeschlossene Erfassung kann nicht versehentlich geöffnet werden", ClosedIntervalCannotBeReopened),
+    ("Mehrtagdetails behalten dieselbe Intervall-ID", CrossMidnightDetailsKeepIntervalId),
     ("Sicherung wird verlustfrei exportiert und importiert", BackupRoundTrip),
     ("Beschädigte Sicherung wird abgewiesen", InvalidBackupRejected),
     ("Import behält lokale Fensterpositionen", BackupKeepsLocalPlacement),
@@ -147,6 +152,62 @@ static void DetailsMatchPeriodActual()
     Equal(TimeSpan.FromMinutes(5), TimeSpan.FromTicks(details.Sum(x => x.Duration.Ticks)));
     Equal(TimeSpan.Zero, TimeCalculator.ActualForDay(data, first, now));
     Equal(TimeSpan.FromMinutes(5), TimeCalculator.ActualForDay(data, second, now));
+}
+
+static void ForgottenIntervalCanBeClosed()
+{
+    var yesterday = new DateOnly(2026, 7, 22); var data = Data(yesterday);
+    var interval = new WorkInterval
+    {
+        StartedAt = yesterday.ToDateTime(new TimeOnly(8, 2)),
+        UsesFiveMinuteRounding = true,
+        RoundedStartedAt = yesterday.ToDateTime(new TimeOnly(8, 5))
+    };
+    data.Intervals.Add(interval);
+    var correctedEnd = yesterday.ToDateTime(new TimeOnly(17, 3));
+    var now = yesterday.AddDays(1).ToDateTime(new TimeOnly(9, 0));
+    if (IntervalEditor.Validate(data, interval.Id, interval.StartedAt, correctedEnd, now) is { } error) throw new InvalidOperationException(error);
+    IntervalEditor.Apply(interval, interval.StartedAt, correctedEnd);
+    if (interval.EndedAt != correctedEnd || interval.RoundedEndedAt != yesterday.ToDateTime(new TimeOnly(17, 0))) throw new InvalidOperationException("Das korrigierte Ende oder seine Rundung ist falsch");
+    BackupService.Validate(data);
+}
+
+static void IntervalEditRejectsOverlap()
+{
+    var date = new DateOnly(2026, 7, 22); var data = Data(date);
+    var first = new WorkInterval { StartedAt = date.ToDateTime(new TimeOnly(8, 0)), EndedAt = date.ToDateTime(new TimeOnly(12, 0)) };
+    var second = new WorkInterval { StartedAt = date.ToDateTime(new TimeOnly(13, 0)), EndedAt = date.ToDateTime(new TimeOnly(17, 0)) };
+    data.Intervals.Add(first); data.Intervals.Add(second);
+    var error = IntervalEditor.Validate(data, second.Id, date.ToDateTime(new TimeOnly(11, 30)), second.EndedAt, date.ToDateTime(new TimeOnly(18, 0)));
+    if (string.IsNullOrWhiteSpace(error)) throw new InvalidOperationException("Eine Überschneidung wurde akzeptiert");
+}
+
+static void IntervalEditAllowsAdjacentIntervals()
+{
+    var date = new DateOnly(2026, 7, 22); var data = Data(date);
+    var first = new WorkInterval { StartedAt = date.ToDateTime(new TimeOnly(8, 0)), EndedAt = date.ToDateTime(new TimeOnly(12, 0)) };
+    var second = new WorkInterval { StartedAt = date.ToDateTime(new TimeOnly(13, 0)), EndedAt = date.ToDateTime(new TimeOnly(17, 0)) };
+    data.Intervals.Add(first); data.Intervals.Add(second);
+    var error = IntervalEditor.Validate(data, second.Id, date.ToDateTime(new TimeOnly(12, 0)), second.EndedAt, date.ToDateTime(new TimeOnly(18, 0)));
+    if (error is not null) throw new InvalidOperationException(error);
+}
+
+static void ClosedIntervalCannotBeReopened()
+{
+    var date = new DateOnly(2026, 7, 22); var data = Data(date);
+    var interval = new WorkInterval { StartedAt = date.ToDateTime(new TimeOnly(8, 0)), EndedAt = date.ToDateTime(new TimeOnly(12, 0)) };
+    data.Intervals.Add(interval);
+    if (IntervalEditor.Validate(data, interval.Id, interval.StartedAt, null, date.ToDateTime(new TimeOnly(18, 0))) is null)
+        throw new InvalidOperationException("Eine abgeschlossene Erfassung wurde wieder geöffnet");
+}
+
+static void CrossMidnightDetailsKeepIntervalId()
+{
+    var firstDay = new DateOnly(2026, 7, 22); var secondDay = firstDay.AddDays(1); var data = Data(firstDay);
+    var interval = new WorkInterval { StartedAt = firstDay.ToDateTime(new TimeOnly(23, 0)), EndedAt = secondDay.ToDateTime(new TimeOnly(1, 0)) };
+    data.Intervals.Add(interval);
+    var details = TimeCalculator.DetailsForPeriod(data, firstDay, secondDay, secondDay.ToDateTime(new TimeOnly(2, 0)));
+    if (details.Count != 2 || details.Any(detail => detail.IntervalId != interval.Id)) throw new InvalidOperationException("Mehrtagdetails zeigen nicht auf dasselbe Intervall");
 }
 
 static WorkInterval Rounded(DateTime start, DateTime end) => new()

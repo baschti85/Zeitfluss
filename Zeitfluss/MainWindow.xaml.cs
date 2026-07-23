@@ -13,8 +13,8 @@ public partial class MainWindow : Window
 {
     private const double FullWidth = 342;
     private const double FullHeight = 408;
-    private const double CompactWidth = 146;
-    private const double CompactHeight = 48;
+    private const double CompactWidth = 238;
+    private const double CompactHeight = 54;
     private readonly DataStore _store;
     private readonly bool _persistChanges;
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1) };
@@ -75,6 +75,8 @@ public partial class MainWindow : Window
         StatusText.Text = active is not null ? $"Läuft seit {active.StartedAt:HH:mm} Uhr{(active.UsesFiveMinuteRounding ? " · 5-Min.-Rhythmus" : string.Empty)}" : finished ? "Feierabend" : hasToday ? "Pausiert" : "Bereit für den Tag";
         StartButton.Content = active is not null ? "Arbeitszeit läuft" : finished ? "Nochmals beginnen" : hasToday ? "Arbeit fortsetzen" : "Arbeit beginnen";
         StartButton.IsEnabled = active is null; PauseButton.IsEnabled = active is not null; EndButton.IsEnabled = active is not null || hasToday && !finished;
+        CompactPauseButton.IsEnabled = active is not null;
+        CompactEndButton.IsEnabled = active is not null || hasToday && !finished;
         var week = TimeCalculator.Periods(_data, today, now, PeriodKind.Week).FirstOrDefault();
         WeekText.Text = week is null ? $"Woche · 00:00 / {_data.Settings.WeeklyHours:0.##} h" : $"Woche · {TimeCalculator.FormatDuration(week.Actual)} / {_data.Settings.WeeklyHours:0.##} h";
     }
@@ -90,6 +92,8 @@ public partial class MainWindow : Window
     }
     private void PauseButton_Click(object sender, RoutedEventArgs e) { CloseActiveInterval(); SaveAndRefresh(); }
     private void EndButton_Click(object sender, RoutedEventArgs e) { CloseActiveInterval(); _data.FinishedDays.Add(DateOnly.FromDateTime(DateTime.Now)); SaveAndRefresh(); }
+    private void CompactPauseButton_Click(object sender, RoutedEventArgs e) { CloseActiveInterval(); SaveAndRefresh(); e.Handled = true; }
+    private void CompactEndButton_Click(object sender, RoutedEventArgs e) { CloseActiveInterval(); _data.FinishedDays.Add(DateOnly.FromDateTime(DateTime.Now)); SaveAndRefresh(); e.Handled = true; }
     private void CloseActiveInterval()
     {
         if (ActiveInterval is not { } active) return;
@@ -106,7 +110,7 @@ public partial class MainWindow : Window
         _compactWasDragged = false;
         _compactPointerStart = GetPointerScreenPosition(e);
         _compactWindowStart = new Point(Left, Top);
-        CompactShell.CaptureMouse();
+        CompactDragSurface.CaptureMouse();
         e.Handled = true;
     }
 
@@ -127,7 +131,7 @@ public partial class MainWindow : Window
 
     private void CompactShell_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        CompactShell.ReleaseMouseCapture();
+        CompactDragSurface.ReleaseMouseCapture();
         if (_compactWasDragged)
         {
             ClampToVirtualScreen();
@@ -140,7 +144,7 @@ public partial class MainWindow : Window
     }
     private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
     private void SettingsButton_Click(object sender, RoutedEventArgs e) { var window = new SettingsWindow(_data) { Owner = this }; if (window.ShowDialog() == true) SaveAndRefresh(); }
-    private void StatisticsButton_Click(object sender, RoutedEventArgs e) => new StatisticsWindow(_data) { Owner = this }.ShowDialog();
+    private void StatisticsButton_Click(object sender, RoutedEventArgs e) => new StatisticsWindow(_data, SaveAndRefresh) { Owner = this }.ShowDialog();
     private void EnterCompactMode()
     {
         if (_isCompact) return;

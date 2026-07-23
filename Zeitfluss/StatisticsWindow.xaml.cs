@@ -10,12 +10,14 @@ namespace Zeitfluss;
 public partial class StatisticsWindow : Window
 {
     private readonly AppData _data;
+    private readonly Action? _onDataChanged;
     private PeriodKind _kind = PeriodKind.Week;
 
-    public StatisticsWindow(AppData data)
+    public StatisticsWindow(AppData data, Action? onDataChanged = null)
     {
         InitializeComponent();
         _data = data;
+        _onDataChanged = onDataChanged;
         Refresh();
     }
 
@@ -39,7 +41,8 @@ public partial class StatisticsWindow : Window
     private void Details_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as Button)?.DataContext is not PeriodRow row) return;
-        new IntervalDetailsWindow(_data, row.Summary) { Owner = this }.ShowDialog();
+        new IntervalDetailsWindow(_data, row.Summary, _onDataChanged) { Owner = this }.ShowDialog();
+        Refresh();
     }
     private void Export_Click(object sender, RoutedEventArgs e)
     {

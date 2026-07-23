@@ -117,7 +117,7 @@ public static class TimeCalculator
                 var hint = interval.UsesFiveMinuteRounding
                     ? $"5-Min.-Rundung · Roh: {rawStart:HH:mm}–{rawEndLabel}"
                     : string.Empty;
-                details.Add(new IntervalDetail(date, effectiveStart, interval.EndedAt is null && date == DateOnly.FromDateTime(now) ? null : effectiveEnd, effectiveEnd - effectiveStart, hint));
+                details.Add(new IntervalDetail(interval.Id, date, effectiveStart, interval.EndedAt is null && date == DateOnly.FromDateTime(now) ? null : effectiveEnd, effectiveEnd - effectiveStart, hint));
             }
         }
         return details;

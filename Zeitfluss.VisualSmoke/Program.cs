@@ -46,6 +46,7 @@ internal static class Program
             button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         });
         VerifyCompactRoundTrip(activeData);
+        VerifyCompactActions(today);
 
         Render(new SettingsWindow(activeData) { ShowInTaskbar = false }, Path.Combine(outputDirectory, "settings-window.png"));
         Render(new SettingsWindow(roundedData) { ShowInTaskbar = false }, Path.Combine(outputDirectory, "settings-rounding.png"), window =>
@@ -66,6 +67,7 @@ internal static class Program
         });
         var roundedPeriod = TimeCalculator.Periods(roundedData, today, now, PeriodKind.Day).First(period => period.Start == today);
         Render(new IntervalDetailsWindow(roundedData, roundedPeriod) { ShowInTaskbar = false }, Path.Combine(outputDirectory, "interval-details.png"));
+        Render(new EditIntervalWindow(roundedData, roundedData.Intervals[0]) { ShowInTaskbar = false }, Path.Combine(outputDirectory, "edit-interval.png"));
         app.Shutdown();
         Console.WriteLine(Path.GetFullPath(outputDirectory));
     }
@@ -102,13 +104,36 @@ internal static class Program
         window.UpdateLayout();
         ((Button)window.FindName("CompactModeButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         window.UpdateLayout();
-        if (Math.Abs(window.ActualWidth - 146) > 0.5 || Math.Abs(window.ActualHeight - 48) > 0.5 || window.ShowInTaskbar)
+        if (Math.Abs(window.ActualWidth - 238) > 0.5 || Math.Abs(window.ActualHeight - 54) > 0.5 || window.ShowInTaskbar)
             throw new InvalidOperationException("Der Kompaktmodus hat nicht die erwartete Geometrie.");
-        var shell = (Border)window.FindName("CompactShell");
-        shell.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left) { RoutedEvent = UIElement.PreviewMouseLeftButtonUpEvent });
+        var dragSurface = (Grid)window.FindName("CompactDragSurface");
+        dragSurface.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left) { RoutedEvent = UIElement.PreviewMouseLeftButtonUpEvent });
         window.UpdateLayout();
         if (Math.Abs(window.ActualWidth - 342) > 0.5 || Math.Abs(window.ActualHeight - 408) > 0.5 || !window.ShowInTaskbar)
             throw new InvalidOperationException("Das Hauptfenster wurde nicht korrekt wiederhergestellt.");
         window.Close();
+    }
+
+    private static void VerifyCompactActions(DateOnly today)
+    {
+        var pauseData = TestData(today);
+        pauseData.Intervals.Add(new WorkInterval { StartedAt = DateTime.Now.AddMinutes(-10) });
+        var pauseWindow = new MainWindow(pauseData, false);
+        pauseWindow.Show();
+        pauseWindow.UpdateLayout();
+        ((Button)pauseWindow.FindName("CompactModeButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        ((Button)pauseWindow.FindName("CompactPauseButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        if (pauseData.Intervals[0].EndedAt is null) throw new InvalidOperationException("Die Pause-Schaltfläche der Bubble hat die laufende Erfassung nicht beendet.");
+        pauseWindow.Close();
+
+        var stopData = TestData(today);
+        stopData.Intervals.Add(new WorkInterval { StartedAt = DateTime.Now.AddMinutes(-10) });
+        var stopWindow = new MainWindow(stopData, false);
+        stopWindow.Show();
+        stopWindow.UpdateLayout();
+        ((Button)stopWindow.FindName("CompactModeButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        ((Button)stopWindow.FindName("CompactEndButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        if (stopData.Intervals[0].EndedAt is null || !stopData.FinishedDays.Contains(today)) throw new InvalidOperationException("Die Stop-Schaltfläche der Bubble hat den Arbeitstag nicht beendet.");
+        stopWindow.Close();
     }
 }

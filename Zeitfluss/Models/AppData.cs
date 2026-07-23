@@ -43,4 +43,4 @@ public sealed record DailySummary(DateOnly Date, TimeSpan Target, TimeSpan Actua
 
 public sealed record PeriodSummary(string Label, DateOnly Start, DateOnly End, TimeSpan Target, TimeSpan Actual, TimeSpan Balance, TimeSpan Cumulative);
 
-public sealed record IntervalDetail(DateOnly Date, DateTime Start, DateTime? End, TimeSpan Duration, string RoundingHint);
+public sealed record IntervalDetail(Guid IntervalId, DateOnly Date, DateTime Start, DateTime? End, TimeSpan Duration, string RoundingHint);

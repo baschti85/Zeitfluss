@@ -24,6 +24,33 @@
         <Style TargetType="Button" x:Key="PrimaryButton" BasedOn="{StaticResource BaseButton}"><Setter Property="Background" Value="{StaticResource Ink}" /><Setter Property="Foreground" Value="White" /></Style>
         <Style TargetType="Button" x:Key="SecondaryButton" BasedOn="{StaticResource BaseButton}"><Setter Property="Background" Value="White" /><Setter Property="BorderBrush" Value="{StaticResource Line}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="Foreground" Value="{StaticResource Ink}" /></Style>
         <Style TargetType="Button" x:Key="GhostButton" BasedOn="{StaticResource BaseButton}"><Setter Property="Background" Value="Transparent" /><Setter Property="Foreground" Value="{StaticResource MutedInk}" /><Setter Property="Padding" Value="8,5" /><Setter Property="MinHeight" Value="32" /></Style>
-        <Style TargetType="TextBox"><Setter Property="FontFamily" Value="Segoe UI Variable Text" /><Setter Property="FontSize" Value="14" /><Setter Property="Padding" Value="11,9" /><Setter Property="BorderBrush" Value="{StaticResource Line}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="Background" Value="{StaticResource Surface}" /><Setter Property="VerticalContentAlignment" Value="Center" /></Style>
+        <Style TargetType="Button" x:Key="CompactActionButton" BasedOn="{StaticResource BaseButton}">
+            <Setter Property="Width" Value="32" /><Setter Property="Height" Value="32" /><Setter Property="MinHeight" Value="32" /><Setter Property="Padding" Value="9" />
+            <Setter Property="Background" Value="#2A2A2E" /><Setter Property="Foreground" Value="#F5F5F7" />
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+                <Border x:Name="Chrome" Background="{TemplateBinding Background}" CornerRadius="10" Padding="{TemplateBinding Padding}" RenderTransformOrigin="0.5,0.5">
+                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Chrome" Property="Background" Value="#3A3A40" /></Trigger>
+                    <Trigger Property="IsPressed" Value="True"><Setter TargetName="Chrome" Property="RenderTransform"><Setter.Value><ScaleTransform ScaleX="0.96" ScaleY="0.96" /></Setter.Value></Setter></Trigger>
+                    <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Chrome" Property="Opacity" Value="0.32" /></Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate></Setter.Value></Setter>
+        </Style>
+        <Style TargetType="Button" x:Key="CompactStopButton" BasedOn="{StaticResource CompactActionButton}"><Setter Property="Background" Value="#302426" /><Setter Property="Foreground" Value="#F2A4A8" /></Style>
+        <Style TargetType="TextBox">
+            <Setter Property="FontFamily" Value="Segoe UI Variable Text" /><Setter Property="FontSize" Value="14" /><Setter Property="Padding" Value="11,9" />
+            <Setter Property="BorderBrush" Value="{StaticResource Line}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="Background" Value="{StaticResource Surface}" />
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="TextBox">
+                <Border x:Name="Chrome" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                    <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center" />
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsKeyboardFocusWithin" Value="True"><Setter TargetName="Chrome" Property="BorderBrush" Value="#A9A9B0" /><Setter TargetName="Chrome" Property="Background" Value="White" /></Trigger>
+                    <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Chrome" Property="Opacity" Value="0.45" /></Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate></Setter.Value></Setter>
+        </Style>
     </Application.Resources>
 </Application>
