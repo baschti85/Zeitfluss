@@ -77,6 +77,11 @@ public static class TimeCalculator
     public static IReadOnlyList<PeriodSummary> Periods(AppData data, DateOnly through, DateTime now, PeriodKind kind)
     {
         var days = Daily(data, through, now);
+        return PeriodsFromDays(days, kind);
+    }
+
+    public static IReadOnlyList<PeriodSummary> PeriodsFromDays(IReadOnlyList<DailySummary> days, PeriodKind kind)
+    {
         return days.GroupBy(day => PeriodKey(day.Date, kind))
             .Select(group =>
             {

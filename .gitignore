@@ -15,6 +15,7 @@ Thumbs.db
 # Local releases and generated visual checks
 publish/
 visual-smoke*/
+renders/
 
 # Local agent work notes
 tasks/

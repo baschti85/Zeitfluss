@@ -1,61 +1,268 @@
-<Window x:Class="Zeitfluss.SettingsWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Einstellungen" Width="500" Height="740" WindowStartupLocation="CenterOwner" ResizeMode="NoResize" Background="#F4F4F6" FontFamily="Segoe UI Variable Text">
-    <Grid Margin="30">
-        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-        <StackPanel Grid.Row="0"><TextBlock Text="Einstellungen" FontFamily="Segoe UI Variable Display" FontSize="28" FontWeight="SemiBold" /><TextBlock Text="Arbeitszeit, Sollzeit und Datensicherung." Foreground="{StaticResource MutedInk}" Margin="0,6,0,0" /></StackPanel>
-
-        <ScrollViewer x:Name="SettingsScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,24,0,0">
-            <StackPanel Margin="0,0,7,0">
-                <Border Background="White" BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="14" Padding="18" Margin="0,0,0,14">
-                    <Grid><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="110" /></Grid.ColumnDefinitions>
-                        <StackPanel><TextBlock Text="Wochenstunden" FontWeight="SemiBold" /><TextBlock Text="Gesamtes Soll pro Woche" FontSize="12" Foreground="{StaticResource MutedInk}" Margin="0,3,0,0" /></StackPanel>
-                        <TextBox x:Name="WeeklyText" Grid.Column="1" TextAlignment="Right" />
-                    </Grid>
-                </Border>
-
-                <Border Background="White" BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="14" Padding="18">
-                    <Grid><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="110" /></Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-                        <TextBlock Text="Regelarbeitszeit" FontWeight="SemiBold" Margin="0,0,0,13" /><TextBlock Grid.Column="1" Text="Stunden" Foreground="{StaticResource MutedInk}" FontSize="12" TextAlignment="Right" />
-                        <TextBlock Grid.Row="1" Text="Montag" VerticalAlignment="Center" /><TextBox x:Name="MondayText" Grid.Row="1" Grid.Column="1" TextAlignment="Right" Margin="0,2" />
-                        <TextBlock Grid.Row="2" Text="Dienstag" VerticalAlignment="Center" /><TextBox x:Name="TuesdayText" Grid.Row="2" Grid.Column="1" TextAlignment="Right" Margin="0,2" />
-                        <TextBlock Grid.Row="3" Text="Mittwoch" VerticalAlignment="Center" /><TextBox x:Name="WednesdayText" Grid.Row="3" Grid.Column="1" TextAlignment="Right" Margin="0,2" />
-                        <TextBlock Grid.Row="4" Text="Donnerstag" VerticalAlignment="Center" /><TextBox x:Name="ThursdayText" Grid.Row="4" Grid.Column="1" TextAlignment="Right" Margin="0,2" />
-                        <TextBlock Grid.Row="5" Text="Freitag" VerticalAlignment="Center" /><TextBox x:Name="FridayText" Grid.Row="5" Grid.Column="1" TextAlignment="Right" Margin="0,2" />
-                        <TextBlock Grid.Row="6" Text="Samstag" VerticalAlignment="Center" /><TextBox x:Name="SaturdayText" Grid.Row="6" Grid.Column="1" TextAlignment="Right" Margin="0,2" />
-                        <TextBlock Grid.Row="7" Text="Sonntag" VerticalAlignment="Center" /><TextBox x:Name="SundayText" Grid.Row="7" Grid.Column="1" TextAlignment="Right" Margin="0,2" />
-                    </Grid>
-                </Border>
-
-                <Border Background="White" BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="14" Padding="18" Margin="0,14,0,0">
-                    <Grid><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                        <StackPanel>
-                            <TextBlock Text="5-Minuten-Rhythmus" FontWeight="SemiBold" />
-                            <TextBlock Text="Start 12:28 → 12:30 · Start 12:32 → 12:35 · Ende 12:32 → 12:30. Gilt für neue Arbeitszeiten und kann zu weniger angerechneter Zeit führen." TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedInk}" Margin="0,4,16,0" />
-                        </StackPanel>
-                        <CheckBox x:Name="FiveMinuteRoundingCheckBox" Grid.Column="1" VerticalAlignment="Center" ToolTip="5-Minuten-Rhythmus aktivieren" />
-                    </Grid>
-                </Border>
-
-                <Border Background="White" BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="14" Padding="18" Margin="0,14,0,0">
-                    <StackPanel>
-                        <TextBlock Text="Datensicherung" FontWeight="SemiBold" />
-                        <TextBlock Text="Vollständige Sicherung für einen PC-Wechsel. CSV-Dateien bleiben reine Auswertungen." TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedInk}" Margin="0,4,0,13" />
-                        <Grid><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="10" /><ColumnDefinition /></Grid.ColumnDefinitions>
-                            <Button Style="{StaticResource SecondaryButton}" Content="Sicherung importieren" Click="ImportBackup_Click" />
-                            <Button Grid.Column="2" Style="{StaticResource SecondaryButton}" Content="Sicherung exportieren" Click="ExportBackup_Click" />
+<Window x:Class="Zeitfluss.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:automation="clr-namespace:System.Windows.Automation;assembly=PresentationCore"
+        Title="Einstellungen" Width="760" Height="700" MinWidth="720" MinHeight="640"
+        WindowStartupLocation="CenterOwner" ResizeMode="CanResize" Background="#F3F4F7"
+        FontFamily="Segoe UI Variable Text" UseLayoutRounding="True">
+    <Window.Resources>
+        <Style x:Key="NavigationChoice" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{StaticResource MutedInk}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Margin" Value="0,3" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Chrome" Background="Transparent" CornerRadius="11" Padding="13,10">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Chrome" Property="Background" Value="#0D171719" /></Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{StaticResource AccentSoft}" />
+                                <Setter Property="Foreground" Value="{StaticResource Accent}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Chrome" Property="BorderBrush" Value="#802878F0" /><Setter TargetName="Chrome" Property="BorderThickness" Value="2" /></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="SectionCard" TargetType="Border">
+            <Setter Property="Background" Value="#D9FFFFFF" />
+            <Setter Property="BorderBrush" Value="{StaticResource GlassLine}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="Padding" Value="18" />
+            <Setter Property="Margin" Value="0,0,0,14" />
+        </Style>
+        <Style x:Key="GlassOpacitySlider" TargetType="Slider">
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid Margin="2,0">
+                            <Border Height="6" Background="#236E7180" CornerRadius="3" VerticalAlignment="Center" />
+                            <Track x:Name="PART_Track" VerticalAlignment="Center">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="{x:Static Slider.DecreaseLarge}" Focusable="False">
+                                        <RepeatButton.Template><ControlTemplate TargetType="RepeatButton"><Border Height="6" Background="{StaticResource Accent}" CornerRadius="3" /></ControlTemplate></RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Width="22" Height="22" Focusable="False">
+                                        <Thumb.Template><ControlTemplate TargetType="Thumb"><Grid><Ellipse Fill="#30000000" Margin="1,3,1,0" /><Ellipse Fill="White" Stroke="{StaticResource Accent}" StrokeThickness="2" Margin="1,0,1,2" /></Grid></ControlTemplate></Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton><RepeatButton Command="{x:Static Slider.IncreaseLarge}" Focusable="False" Opacity="0" /></Track.IncreaseRepeatButton>
+                            </Track>
                         </Grid>
-                        <TextBlock x:Name="BackupStatusText" Foreground="{StaticResource Positive}" FontSize="12" TextWrapping="Wrap" Margin="0,10,0,0" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="28,24,28,22">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="18" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="14" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid>
+            <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <StackPanel>
+                <TextBlock Text="Einstellungen" FontFamily="Segoe UI Variable Display" FontSize="29" FontWeight="SemiBold" />
+                <TextBlock Text="Arbeitszeit, Automatik, Darstellung und Daten." Foreground="{StaticResource MutedInk}" Margin="0,5,0,0" />
+            </StackPanel>
+            <Border Grid.Column="1" Background="#E7F0FF" CornerRadius="12" Padding="11,7" VerticalAlignment="Center">
+                <TextBlock Text="Alles bleibt lokal" Foreground="{StaticResource Accent}" FontSize="11" FontWeight="SemiBold" />
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="2" Background="#BFFFFFFF" BorderBrush="{StaticResource GlassLine}" BorderThickness="1" CornerRadius="22">
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="176" /><ColumnDefinition Width="1" /><ColumnDefinition /></Grid.ColumnDefinitions>
+                <Border Background="#58EEF0F5" CornerRadius="21,0,0,21" Padding="16,20">
+                    <StackPanel>
+                        <TextBlock Text="BEREICHE" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource MutedInk}" Margin="12,0,0,9" />
+                        <RadioButton x:Name="WorkTimeNavigation" Style="{StaticResource NavigationChoice}" Content="Arbeitszeit" IsChecked="True" Click="WorkTimeNavigation_Click" />
+                        <RadioButton x:Name="CaptureNavigation" Style="{StaticResource NavigationChoice}" Content="Erfassung" Click="CaptureNavigation_Click" />
+                        <RadioButton x:Name="AppearanceNavigation" Style="{StaticResource NavigationChoice}" Content="Darstellung" Click="AppearanceNavigation_Click" />
+                        <RadioButton x:Name="DataNavigation" Style="{StaticResource NavigationChoice}" Content="Daten" Click="DataNavigation_Click" />
                     </StackPanel>
                 </Border>
-            </StackPanel>
-        </ScrollViewer>
+                <Border Grid.Column="1" Background="#1A6E7180" />
 
-        <TextBlock x:Name="ValidationText" Grid.Row="2" Foreground="{StaticResource Negative}" FontSize="12" TextWrapping="Wrap" MinHeight="28" Margin="2,10,0,3" />
-        <Grid Grid.Row="3"><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="10" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-            <TextBlock Text="Dezimalwerte wie 7,5 sind möglich." VerticalAlignment="Center" Foreground="{StaticResource MutedInk}" FontSize="11" />
+                <Grid Grid.Column="2" Margin="24,20,18,18">
+                    <ScrollViewer x:Name="SettingsScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Margin="0,0,7,0">
+                            <TextBlock Text="Arbeitszeit" FontSize="20" FontWeight="SemiBold" />
+                            <TextBlock Text="Lege dein Wochenziel fest und verteile es auf die Arbeitstage." Foreground="{StaticResource MutedInk}" FontSize="12" Margin="0,4,0,18" />
+
+                            <Border Style="{StaticResource SectionCard}">
+                                <StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="110" /></Grid.ColumnDefinitions>
+                                        <StackPanel><TextBlock Text="Wochenstunden" FontWeight="SemiBold" /><TextBlock Text="Gesamtes Soll pro Woche" FontSize="12" Foreground="{StaticResource MutedInk}" Margin="0,3,0,0" /></StackPanel>
+                                        <TextBox x:Name="WeeklyText" Grid.Column="1" TextAlignment="Right" TextChanged="SettingChanged" />
+                                    </Grid>
+                                    <TextBlock Text="SCHNELLVORLAGEN" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource MutedInk}" Margin="0,18,0,8" />
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Style="{StaticResource SecondaryButton}" Content="40 h · Mo–Fr" Padding="12,6" Margin="0,0,8,0" Click="Preset40_Click" />
+                                        <Button Style="{StaticResource SecondaryButton}" Content="35 h · Mo–Fr" Padding="12,6" Margin="0,0,8,0" Click="Preset35_Click" />
+                                        <Button Style="{StaticResource SecondaryButton}" Content="30 h · Mo–Fr" Padding="12,6" Click="Preset30_Click" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource SectionCard}">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,12">
+                                        <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                        <StackPanel><TextBlock Text="Regelarbeitszeit" FontWeight="SemiBold" /><TextBlock Text="Stunden pro Wochentag" FontSize="12" Foreground="{StaticResource MutedInk}" Margin="0,3,0,0" /></StackPanel>
+                                        <Button Grid.Column="1" Style="{StaticResource GhostButton}" Content="Montag auf Mo–Fr übertragen" Click="CopyMonday_Click" />
+                                    </Grid>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="112" /></Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /></Grid.RowDefinitions>
+                                        <TextBlock Text="Montag" VerticalAlignment="Center" /><TextBox x:Name="MondayText" Grid.Column="1" TextAlignment="Right" Margin="0,2" TextChanged="SettingChanged" />
+                                        <TextBlock Grid.Row="1" Text="Dienstag" VerticalAlignment="Center" /><TextBox x:Name="TuesdayText" Grid.Row="1" Grid.Column="1" TextAlignment="Right" Margin="0,2" TextChanged="SettingChanged" />
+                                        <TextBlock Grid.Row="2" Text="Mittwoch" VerticalAlignment="Center" /><TextBox x:Name="WednesdayText" Grid.Row="2" Grid.Column="1" TextAlignment="Right" Margin="0,2" TextChanged="SettingChanged" />
+                                        <TextBlock Grid.Row="3" Text="Donnerstag" VerticalAlignment="Center" /><TextBox x:Name="ThursdayText" Grid.Row="3" Grid.Column="1" TextAlignment="Right" Margin="0,2" TextChanged="SettingChanged" />
+                                        <TextBlock Grid.Row="4" Text="Freitag" VerticalAlignment="Center" /><TextBox x:Name="FridayText" Grid.Row="4" Grid.Column="1" TextAlignment="Right" Margin="0,2" TextChanged="SettingChanged" />
+                                        <TextBlock Grid.Row="5" Text="Samstag" VerticalAlignment="Center" /><TextBox x:Name="SaturdayText" Grid.Row="5" Grid.Column="1" TextAlignment="Right" Margin="0,2" TextChanged="SettingChanged" />
+                                        <TextBlock Grid.Row="6" Text="Sonntag" VerticalAlignment="Center" /><TextBox x:Name="SundayText" Grid.Row="6" Grid.Column="1" TextAlignment="Right" Margin="0,2" TextChanged="SettingChanged" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <ScrollViewer x:Name="CaptureScroll" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Margin="0,0,7,0">
+                            <TextBlock Text="Erfassung" FontSize="20" FontWeight="SemiBold" />
+                            <TextBlock Text="Automatik, Rundung und schnelle Desktop-Steuerung." Foreground="{StaticResource MutedInk}" FontSize="12" Margin="0,4,0,18" />
+                            <Border Style="{StaticResource SectionCard}">
+                                <StackPanel>
+                                    <CheckBox x:Name="FiveMinuteRoundingCheckBox" Content="5-Minuten-Rhythmus verwenden" FontWeight="SemiBold" Click="SettingChanged" />
+                                    <TextBlock Text="Start wird auf die nächste, Ende auf die vorherige volle 5-Minuten-Grenze gesetzt. Die Rohzeit bleibt sichtbar." TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedInk}" Margin="24,6,0,0" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource SectionCard}">
+                                <StackPanel>
+                                    <CheckBox x:Name="ForgottenTimerCheckBox" Content="Vergessene Erfassungen intelligent erkennen" FontWeight="SemiBold" Click="SettingChanged" />
+                                    <TextBlock Text="Zeitfluss schlägt bei ungewöhnlich langen oder über Nacht laufenden Timern eine sichere Korrektur vor." TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedInk}" Margin="24,6,0,14" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="150" /></Grid.ColumnDefinitions>
+                                        <TextBlock Text="Inaktivität erkennen nach" VerticalAlignment="Center" />
+                                        <ComboBox x:Name="IdleThresholdComboBox" Grid.Column="1" SelectionChanged="SettingChanged">
+                                            <ComboBoxItem Content="5 Minuten" Tag="5" /><ComboBoxItem Content="10 Minuten" Tag="10" /><ComboBoxItem Content="15 Minuten" Tag="15" /><ComboBoxItem Content="30 Minuten" Tag="30" /><ComboBoxItem Content="60 Minuten" Tag="60" />
+                                        </ComboBox>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource SectionCard}">
+                                <StackPanel>
+                                    <CheckBox x:Name="GlobalHotKeysCheckBox" Content="Globale Tastenkürzel aktivieren" FontWeight="SemiBold" Click="SettingChanged" />
+                                    <TextBlock Text="F8 startet, F9 pausiert oder setzt fort, F10 beendet – jeweils zusammen mit den ausgewählten Zusatztasten." TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedInk}" Margin="24,6,0,14" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="190" /></Grid.ColumnDefinitions>
+                                        <TextBlock Text="Tastenkombination" VerticalAlignment="Center" />
+                                        <ComboBox x:Name="HotKeyPresetComboBox" Grid.Column="1" SelectionChanged="SettingChanged">
+                                            <ComboBoxItem Content="Strg + Alt + F8/F9/F10" Tag="ControlAlt" /><ComboBoxItem Content="Strg + Umschalt + F8/F9/F10" Tag="ControlShift" /><ComboBoxItem Content="Alt + Umschalt + F8/F9/F10" Tag="AltShift" />
+                                        </ComboBox>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource SectionCard}">
+                                <StackPanel>
+                                    <CheckBox x:Name="EndReminderCheckBox" Content="Dezent an den Feierabend erinnern" FontWeight="SemiBold" Click="SettingChanged" />
+                                    <TextBlock Text="Die Erinnerung erscheint nur einmal pro Tag über das Tray-Icon." TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedInk}" Margin="24,6,0,14" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="150" /></Grid.ColumnDefinitions>
+                                        <TextBlock Text="Erinnerung" VerticalAlignment="Center" />
+                                        <ComboBox x:Name="ReminderLeadComboBox" Grid.Column="1" SelectionChanged="SettingChanged">
+                                            <ComboBoxItem Content="Bei Sollzeit" Tag="0" /><ComboBoxItem Content="5 Minuten vorher" Tag="5" /><ComboBoxItem Content="10 Minuten vorher" Tag="10" /><ComboBoxItem Content="15 Minuten vorher" Tag="15" />
+                                        </ComboBox>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <ScrollViewer x:Name="AppearanceScroll" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Margin="0,0,7,0">
+                            <TextBlock Text="Darstellung" FontSize="20" FontWeight="SemiBold" />
+                            <TextBlock Text="Passe die ruhige Glaswirkung an deinen Arbeitsplatz an." Foreground="{StaticResource MutedInk}" FontSize="12" Margin="0,4,0,18" />
+                            <Border x:Name="TransparencyCard" Style="{StaticResource SectionCard}">
+                                <StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                        <StackPanel><TextBlock Text="Fenstertransparenz" FontWeight="SemiBold" /><TextBlock Text="Gilt für Hauptfenster, Bubble und alle Dialoge. Die Vorschau wird sofort angewendet." TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedInk}" Margin="0,4,18,0" /></StackPanel>
+                                        <Border Grid.Column="1" Background="{StaticResource AccentSoft}" CornerRadius="10" Padding="10,5" VerticalAlignment="Top"><TextBlock x:Name="OpacityValueText" Text="92 % Deckkraft" Foreground="{StaticResource Accent}" FontSize="12" FontWeight="SemiBold" /></Border>
+                                    </Grid>
+                                    <Slider x:Name="OpacitySlider" Style="{StaticResource GlassOpacitySlider}" Minimum="80" Maximum="100" Value="92" TickFrequency="1" SmallChange="1" LargeChange="5" IsSnapToTickEnabled="True" IsMoveToPointEnabled="True" Margin="0,13,0,0" ToolTip="Fensterdeckkraft einstellen" AutomationProperties.Name="Fensterdeckkraft" ValueChanged="OpacitySlider_ValueChanged" />
+                                    <Grid Margin="0,1,0,0"><TextBlock Text="Mehr transparent" FontSize="10" Foreground="{StaticResource MutedInk}" /><TextBlock Text="Vollständig deckend" HorizontalAlignment="Right" FontSize="10" Foreground="{StaticResource MutedInk}" /></Grid>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource SectionCard}">
+                                <StackPanel>
+                                    <CheckBox x:Name="AlwaysOnTopCheckBox" Content="Hauptfenster im Vordergrund halten" FontWeight="SemiBold" Click="SettingChanged" />
+                                    <TextBlock Text="Die Bubble bleibt unabhängig davon sichtbar, solange sie geöffnet ist." TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedInk}" Margin="24,6,0,0" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <ScrollViewer x:Name="DataScroll" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Margin="0,0,7,0">
+                            <TextBlock Text="Daten" FontSize="20" FontWeight="SemiBold" />
+                            <TextBlock Text="Sichere deinen vollständigen lokalen Zeitfluss-Datenbestand." Foreground="{StaticResource MutedInk}" FontSize="12" Margin="0,4,0,18" />
+                            <Border Style="{StaticResource SectionCard}">
+                                <StackPanel>
+                                    <TextBlock Text="Datensicherung" FontWeight="SemiBold" />
+                                    <TextBlock Text="Für einen PC-Wechsel oder als persönliche Sicherung. CSV-Dateien bleiben reine Auswertungen." TextWrapping="Wrap" FontSize="12" Foreground="{StaticResource MutedInk}" Margin="0,4,0,16" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="10" /><ColumnDefinition /></Grid.ColumnDefinitions>
+                                        <Button Style="{StaticResource SecondaryButton}" Content="Sicherung importieren" Click="ImportBackup_Click" />
+                                        <Button Grid.Column="2" Style="{StaticResource PrimaryButton}" Content="Sicherung exportieren" Click="ExportBackup_Click" />
+                                    </Grid>
+                                    <TextBlock x:Name="BackupStatusText" Foreground="{StaticResource Positive}" FontSize="12" TextWrapping="Wrap" Margin="0,12,0,0" />
+                                </StackPanel>
+                            </Border>
+                            <Border Background="#FFF8E9" BorderBrush="#F1D9A7" BorderThickness="1" CornerRadius="14" Padding="16">
+                                <TextBlock Text="Zeitfluss speichert ausschließlich lokal unter %LOCALAPPDATA%\Zeitfluss. Es werden keine Arbeitszeiten an einen Onlinedienst übertragen." TextWrapping="Wrap" FontSize="12" Foreground="#76551D" />
+                            </Border>
+                            <Button Style="{StaticResource GhostButton}"
+                                    Content="Über Zeitfluss · Impressum"
+                                    HorizontalAlignment="Left"
+                                    Padding="4,3"
+                                    MinHeight="26"
+                                    Margin="2,8,0,0"
+                                    FontSize="11"
+                                    FontWeight="Normal"
+                                    Click="About_Click"
+                                    automation:AutomationProperties.Name="Über Zeitfluss und Impressum öffnen" />
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="10" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock x:Name="ValidationText" Foreground="{StaticResource Negative}" FontSize="12" TextWrapping="Wrap" />
+                <TextBlock x:Name="DirtyStatusText" Text="Alle Änderungen gespeichert" Foreground="{StaticResource MutedInk}" FontSize="11" Margin="0,3,0,0" />
+            </StackPanel>
             <Button Grid.Column="1" Style="{StaticResource SecondaryButton}" Content="Abbrechen" Click="Cancel_Click" />
-            <Button Grid.Column="3" Style="{StaticResource PrimaryButton}" Content="Speichern" Click="Save_Click" />
+            <Button x:Name="SaveButton" Grid.Column="3" Style="{StaticResource PrimaryButton}" Content="Änderungen speichern" Click="Save_Click" />
         </Grid>
     </Grid>
 </Window>

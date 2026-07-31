@@ -1,0 +1,78 @@
+<Window x:Class="Zeitfluss.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:automation="clr-namespace:System.Windows.Automation;assembly=PresentationCore"
+        Title="Über Zeitfluss"
+        Width="480"
+        Height="600"
+        MinWidth="480"
+        MinHeight="600"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        Background="#F3F4F7"
+        FontFamily="Segoe UI Variable Text"
+        UseLayoutRounding="True">
+    <Grid Margin="26">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="18" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="18" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="72" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Border Width="72" Height="72" CornerRadius="18" Background="#171719" ClipToBounds="True">
+                <Image Source="/Zeitfluss;component/Assets/zeitfluss-icon.png" Stretch="UniformToFill" />
+            </Border>
+            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                <TextBlock Text="Zeitfluss" FontFamily="Segoe UI Variable Display" FontSize="25" FontWeight="SemiBold" />
+                <TextBlock Text="Lokale Arbeitszeiterfassung" Foreground="{StaticResource MutedInk}" FontSize="12" Margin="0,3,0,0" />
+                <TextBlock x:Name="VersionText" Foreground="{StaticResource MutedInk}" FontSize="11" Margin="0,5,0,0" />
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="2" Background="#E6FFFFFF" BorderBrush="{StaticResource GlassLine}" BorderThickness="1" CornerRadius="18" Padding="20">
+            <StackPanel>
+                <TextBlock Text="Impressum" FontSize="18" FontWeight="SemiBold" />
+                <TextBlock Text="Projektverantwortlich" Foreground="{StaticResource MutedInk}" FontSize="11" Margin="0,3,0,17" />
+
+                <TextBlock x:Name="ImprintNameText" Text="Bastian Werner" FontSize="15" FontWeight="SemiBold" />
+                <TextBlock x:Name="ImprintOrganizationText" Text="BAIUDBw TM 1" Foreground="{StaticResource MutedInk}" FontSize="13" Margin="0,4,0,0" />
+                <TextBlock Margin="0,6,0,0" FontSize="13">
+                    <Hyperlink NavigateUri="mailto:bastianwerner@bundeswehr.org"
+                               RequestNavigate="Link_RequestNavigate"
+                               Foreground="{StaticResource Accent}"
+                               automation:AutomationProperties.Name="E-Mail an Bastian Werner senden">bastianwerner@bundeswehr.org</Hyperlink>
+                </TextBlock>
+
+                <Border Height="1" Background="{StaticResource Line}" Margin="0,20,0,18" />
+
+                <TextBlock Text="Quellcode &amp; Downloads" FontWeight="SemiBold" />
+                <TextBlock TextWrapping="Wrap" Foreground="{StaticResource MutedInk}" FontSize="12" Margin="0,4,0,10"
+                           Text="Zeitfluss ist ein öffentliches Open-Source-Projekt. Releases und Quellcode findest du auf GitHub." />
+                <TextBlock FontSize="13">
+                    <Hyperlink NavigateUri="https://github.com/baschti85/Zeitfluss"
+                               RequestNavigate="Link_RequestNavigate"
+                               Foreground="{StaticResource Accent}"
+                               automation:AutomationProperties.Name="Zeitfluss auf GitHub öffnen">github.com/baschti85/Zeitfluss</Hyperlink>
+                </TextBlock>
+
+                <Border Background="#FFF8E9" BorderBrush="#F1D9A7" BorderThickness="1" CornerRadius="12" Padding="12" Margin="0,18,0,0">
+                    <TextBlock Text="Arbeitszeitdaten bleiben ausschließlich lokal auf diesem PC." TextWrapping="Wrap" FontSize="11" Foreground="#76551D" />
+                </Border>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <TextBlock Text="MIT-Lizenz" Foreground="{StaticResource MutedInk}" FontSize="11" VerticalAlignment="Center" />
+            <Button Grid.Column="1" Style="{StaticResource PrimaryButton}" Content="Schließen" HorizontalAlignment="Right" Click="Close_Click" />
+        </Grid>
+    </Grid>
+</Window>
