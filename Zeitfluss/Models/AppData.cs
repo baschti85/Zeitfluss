@@ -6,6 +6,7 @@ public sealed class AppData
     public AppSettings Settings { get; set; } = new();
     public List<WorkInterval> Intervals { get; set; } = [];
     public HashSet<DateOnly> FinishedDays { get; set; } = [];
+    public DateOnly? LastEndReminderOn { get; set; }
 }
 
 public sealed class AppSettings
@@ -27,6 +28,20 @@ public sealed class AppSettings
     public double? CompactWindowTop { get; set; }
     public bool AlwaysOnTop { get; set; } = true;
     public bool UseFiveMinuteRounding { get; set; }
+    public double WindowOpacityPercent { get; set; } = 92;
+    public bool EnableForgottenTimerAssistant { get; set; } = true;
+    public int IdleThresholdMinutes { get; set; } = 10;
+    public bool EnableGlobalHotKeys { get; set; }
+    public HotKeyPreset HotKeyPreset { get; set; } = HotKeyPreset.ControlAlt;
+    public bool EnableEndOfDayReminder { get; set; } = true;
+    public int ReminderLeadMinutes { get; set; } = 5;
+}
+
+public enum HotKeyPreset
+{
+    ControlAlt,
+    ControlShift,
+    AltShift
 }
 
 public sealed class WorkInterval

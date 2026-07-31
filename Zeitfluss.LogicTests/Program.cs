@@ -22,6 +22,10 @@ var tests = new (string Name, Action Run)[]
     ("Sicherung wird verlustfrei exportiert und importiert", BackupRoundTrip),
     ("Beschädigte Sicherung wird abgewiesen", InvalidBackupRejected),
     ("Import behält lokale Fensterpositionen", BackupKeepsLocalPlacement),
+    ("Fenstertransparenz wird sicher normalisiert", WindowOpacityNormalization),
+    ("Tagesprognose berechnet Restzeit und Feierabend", WorkdayInsightProjection),
+    ("Vergessener Timer erhält eine sichere Sollzeit-Empfehlung", ForgottenTimerRecoverySuggestion),
+    ("Inaktivität empfiehlt den letzten Eingabezeitpunkt", IdleRecoverySuggestion),
     ("Negative Dauer wird korrekt formatiert", NegativeFormatting)
 };
 
@@ -225,6 +229,14 @@ static void BackupRoundTrip()
     data.Settings.CompactWindowLeft = 321.5;
     data.Settings.CompactWindowTop = 87.25;
     data.Settings.UseFiveMinuteRounding = true;
+    data.Settings.WindowOpacityPercent = 84;
+    data.Settings.EnableForgottenTimerAssistant = false;
+    data.Settings.IdleThresholdMinutes = 30;
+    data.Settings.EnableGlobalHotKeys = true;
+    data.Settings.HotKeyPreset = HotKeyPreset.ControlShift;
+    data.Settings.EnableEndOfDayReminder = false;
+    data.Settings.ReminderLeadMinutes = 10;
+    data.LastEndReminderOn = date;
     data.Intervals.Add(Rounded(date.ToDateTime(new TimeOnly(8, 1)), date.ToDateTime(new TimeOnly(16, 32))));
     data.FinishedDays.Add(date);
     var path = Path.Combine(Path.GetTempPath(), $"zeitfluss-{Guid.NewGuid():N}.zeitfluss");
@@ -235,8 +247,71 @@ static void BackupRoundTrip()
         if (imported.TrackingStartedOn != date || imported.Intervals.Count != 1 || !imported.FinishedDays.Contains(date)) throw new InvalidOperationException("Arbeitszeitdaten fehlen nach dem Import");
         if (imported.Settings.CompactWindowLeft != 321.5 || imported.Settings.CompactWindowTop != 87.25) throw new InvalidOperationException("Kompaktposition fehlt nach dem Import");
         if (!imported.Settings.UseFiveMinuteRounding || !imported.Intervals[0].UsesFiveMinuteRounding || imported.Intervals[0].RoundedStartedAt is null) throw new InvalidOperationException("Rundungseinstellung fehlt nach dem Import");
+        if (imported.Settings.WindowOpacityPercent != 84) throw new InvalidOperationException("Fenstertransparenz fehlt nach dem Import");
+        if (imported.Settings.EnableForgottenTimerAssistant || imported.Settings.IdleThresholdMinutes != 30 || !imported.Settings.EnableGlobalHotKeys || imported.Settings.HotKeyPreset != HotKeyPreset.ControlShift)
+            throw new InvalidOperationException("Desktop-Automatik fehlt nach dem Import");
+        if (imported.Settings.EnableEndOfDayReminder || imported.Settings.ReminderLeadMinutes != 10 || imported.LastEndReminderOn != date)
+            throw new InvalidOperationException("Feierabend-Erinnerung fehlt nach dem Import");
     }
     finally { if (File.Exists(path)) File.Delete(path); }
+}
+
+static void WorkdayInsightProjection()
+{
+    var date = new DateOnly(2026, 7, 20);
+    var data = Data(date);
+    data.Intervals.Add(new WorkInterval { StartedAt = date.ToDateTime(new TimeOnly(8, 0)), EndedAt = date.ToDateTime(new TimeOnly(12, 0)) });
+    data.Intervals.Add(new WorkInterval { StartedAt = date.ToDateTime(new TimeOnly(13, 0)) });
+    var insight = new WorkdayInsightService().Create(data, date.ToDateTime(new TimeOnly(14, 0)));
+    if (insight.State != WorkdayState.Running) throw new InvalidOperationException("Der Arbeitstag wurde nicht als laufend erkannt.");
+    Equal(TimeSpan.FromHours(5), insight.Actual);
+    Equal(TimeSpan.FromHours(3), insight.Remaining);
+    if (insight.ProjectedFinishAt != date.ToDateTime(new TimeOnly(17, 0))) throw new InvalidOperationException("Die Feierabend-Prognose ist falsch.");
+}
+
+static void ForgottenTimerRecoverySuggestion()
+{
+    var date = new DateOnly(2026, 7, 20);
+    var data = Data(date);
+    data.Intervals.Add(new WorkInterval { StartedAt = date.ToDateTime(new TimeOnly(8, 0)), EndedAt = date.ToDateTime(new TimeOnly(12, 0)) });
+    var open = new WorkInterval { StartedAt = date.ToDateTime(new TimeOnly(13, 0)) };
+    data.Intervals.Add(open);
+    var now = date.AddDays(1).ToDateTime(new TimeOnly(8, 0));
+    var assessment = new TimeRecoveryAdvisor().Assess(data, now, options: new RecoveryAdvisorOptions { LongRunningThreshold = TimeSpan.FromHours(12), IdleThreshold = TimeSpan.FromMinutes(10) });
+    if (!assessment.Signals.HasFlag(RecoverySignalKind.CrossedDayBoundary) || !assessment.Signals.HasFlag(RecoverySignalKind.ExcessiveDuration))
+        throw new InvalidOperationException("Der über Nacht laufende Timer wurde nicht sicher erkannt.");
+    var scheduled = assessment.Suggestions.SingleOrDefault(suggestion => suggestion.Kind == RecoverySuggestionKind.ScheduledTargetReached);
+    if (scheduled?.EndAt != date.ToDateTime(new TimeOnly(17, 0))) throw new InvalidOperationException("Die Sollzeit-Empfehlung ist falsch.");
+}
+
+static void IdleRecoverySuggestion()
+{
+    var date = new DateOnly(2026, 7, 20);
+    var data = Data(date);
+    data.Intervals.Add(new WorkInterval { StartedAt = date.ToDateTime(new TimeOnly(8, 0)) });
+    var now = date.ToDateTime(new TimeOnly(11, 0));
+    var lastInput = date.ToDateTime(new TimeOnly(10, 40));
+    var assessment = new TimeRecoveryAdvisor().Assess(data, now, lastInput, new RecoveryAdvisorOptions { LongRunningThreshold = TimeSpan.FromHours(12), IdleThreshold = TimeSpan.FromMinutes(10) });
+    if (!assessment.Signals.HasFlag(RecoverySignalKind.UserIdle) || assessment.Recommended?.Kind != RecoverySuggestionKind.LastUserActivity || assessment.Recommended.EndAt != lastInput)
+        throw new InvalidOperationException("Die Inaktivitätsempfehlung ist falsch.");
+}
+
+static void WindowOpacityNormalization()
+{
+    if (WindowAppearance.NormalizePercent(double.NaN) != WindowAppearance.DefaultOpacityPercent)
+        throw new InvalidOperationException("Ungültige Transparenz verwendet nicht den sicheren Standardwert.");
+    if (WindowAppearance.NormalizePercent(42) != WindowAppearance.MinimumOpacityPercent)
+        throw new InvalidOperationException("Zu geringe Transparenz wurde nicht begrenzt.");
+    if (WindowAppearance.NormalizePercent(140) != WindowAppearance.MaximumOpacityPercent)
+        throw new InvalidOperationException("Zu hohe Transparenz wurde nicht begrenzt.");
+    if (WindowAppearance.NormalizePercent(91.6) != 92 || Math.Abs(WindowAppearance.ToOpacity(86) - 0.86) > 0.0001)
+        throw new InvalidOperationException("Transparenz wird nicht korrekt gerundet oder angewendet.");
+
+    var data = Data(new DateOnly(2026, 7, 20));
+    data.Settings.WindowOpacityPercent = 79;
+    try { BackupService.Validate(data); }
+    catch (InvalidDataException) { return; }
+    throw new InvalidOperationException("Eine Sicherung mit unlesbarer Fenstertransparenz wurde akzeptiert.");
 }
 
 static void InvalidBackupRejected()

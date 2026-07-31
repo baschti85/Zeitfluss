@@ -82,6 +82,14 @@ public static class BackupService
             throw new InvalidDataException("Die Sicherung ist unvollständig.");
         if (data.Settings.WeeklyHours is < 0 or > 168 || !double.IsFinite(data.Settings.WeeklyHours))
             throw new InvalidDataException("Die Sicherung enthält ungültige Wochenstunden.");
+        if (data.Settings.WindowOpacityPercent is < WindowAppearance.MinimumOpacityPercent or > WindowAppearance.MaximumOpacityPercent || !double.IsFinite(data.Settings.WindowOpacityPercent))
+            throw new InvalidDataException("Die Sicherung enthält eine ungültige Fenstertransparenz.");
+        if (data.Settings.IdleThresholdMinutes is < 5 or > 60)
+            throw new InvalidDataException("Die Sicherung enthält einen ungültigen Inaktivitätszeitraum.");
+        if (data.Settings.ReminderLeadMinutes is < 0 or > 30)
+            throw new InvalidDataException("Die Sicherung enthält einen ungültigen Erinnerungszeitpunkt.");
+        if (!Enum.IsDefined(data.Settings.HotKeyPreset))
+            throw new InvalidDataException("Die Sicherung enthält ein unbekanntes Tastenkürzel-Schema.");
         if (data.Settings.DailyHours is null)
             throw new InvalidDataException("Die Sicherung enthält keine Tagessollzeiten.");
         if (data.TrackingStartedOn == default)

@@ -25,6 +25,10 @@ public sealed class DataStore
             if (!File.Exists(DataFile)) return new AppData();
             var data = JsonSerializer.Deserialize<AppData>(File.ReadAllText(DataFile), JsonOptions) ?? new AppData();
             EnsureSchedule(data.Settings);
+            data.Settings.WindowOpacityPercent = WindowAppearance.NormalizePercent(data.Settings.WindowOpacityPercent);
+            data.Settings.IdleThresholdMinutes = NormalizeIdleThreshold(data.Settings.IdleThresholdMinutes);
+            data.Settings.ReminderLeadMinutes = NormalizeReminderLead(data.Settings.ReminderLeadMinutes);
+            if (!Enum.IsDefined(data.Settings.HotKeyPreset)) data.Settings.HotKeyPreset = HotKeyPreset.ControlAlt;
             return data;
         }
         catch (Exception ex)
@@ -53,4 +57,8 @@ public sealed class DataStore
         foreach (var day in Enum.GetValues<DayOfWeek>())
             settings.DailyHours.TryAdd(day, 0);
     }
+
+    public static int NormalizeIdleThreshold(int minutes) => Math.Clamp(minutes, 5, 60);
+
+    public static int NormalizeReminderLead(int minutes) => Math.Clamp(minutes, 0, 30);
 }

@@ -15,6 +15,7 @@ public partial class EditIntervalWindow : Window
     {
         InitializeComponent();
         _data = data;
+        WindowAppearance.Apply(this, _data.Settings);
         _interval = interval;
         StartDateTextBox.Text = interval.StartedAt.ToString("dd.MM.yyyy", GermanCulture);
         StartTimeTextBox.Text = interval.StartedAt.ToString("HH:mm:ss", GermanCulture);

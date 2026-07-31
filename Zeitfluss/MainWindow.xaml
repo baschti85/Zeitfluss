@@ -1,59 +1,231 @@
-<Window x:Class="Zeitfluss.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Zeitfluss" Height="408" Width="342" WindowStyle="None" AllowsTransparency="True" Background="Transparent" ResizeMode="NoResize" ShowInTaskbar="True" UseLayoutRounding="True">
+<Window x:Class="Zeitfluss.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Zeitfluss" Height="520" Width="380"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize" ShowInTaskbar="True" UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="ClearType">
+    <Window.Resources>
+        <Style x:Key="HeaderIconButton" TargetType="Button" BasedOn="{StaticResource BaseButton}">
+            <Setter Property="Width" Value="40" />
+            <Setter Property="Height" Value="40" />
+            <Setter Property="MinHeight" Value="40" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="4,0,0,0" />
+            <Setter Property="Background" Value="#78FFFFFF" />
+            <Setter Property="BorderBrush" Value="#A8FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{StaticResource MutedInk}" />
+        </Style>
+        <Style x:Key="MainActionButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="MinHeight" Value="50" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Padding" Value="16,10" />
+        </Style>
+        <Style x:Key="SecondaryActionButton" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+            <Setter Property="MinHeight" Value="44" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Background" Value="#A8FFFFFF" />
+            <Setter Property="BorderBrush" Value="#BFFFFFFF" />
+        </Style>
+        <Style x:Key="MetricCard" TargetType="Border">
+            <Setter Property="Background" Value="#8FFFFFFF" />
+            <Setter Property="BorderBrush" Value="#BFFFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="17" />
+            <Setter Property="Padding" Value="12,11" />
+        </Style>
+        <Style x:Key="WeekProgressStyle" TargetType="ProgressBar">
+            <Setter Property="Height" Value="5" />
+            <Setter Property="Maximum" Value="1" />
+            <Setter Property="Background" Value="#1A6E7180" />
+            <Setter Property="Foreground" Value="{StaticResource Accent}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ProgressBar">
+                        <Grid x:Name="PART_Track" SnapsToDevicePixels="True">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="3" />
+                            <Border x:Name="PART_Indicator" HorizontalAlignment="Left" Background="{TemplateBinding Foreground}" CornerRadius="3" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
     <Grid>
-        <Border x:Name="FullShell" Margin="1" Padding="21" CornerRadius="20" Background="#FCFCFD" BorderBrush="#D9D9DE" BorderThickness="1">
+        <Border x:Name="FullShell" Margin="2" CornerRadius="28" BorderBrush="#CFFFFFFF" BorderThickness="1">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Offset="0" Color="#F7FFFFFF" />
+                    <GradientStop Offset="0.48" Color="#F2F7FAFF" />
+                    <GradientStop Offset="1" Color="#EEF2F5FB" />
+                </LinearGradientBrush>
+            </Border.Background>
             <Grid>
-                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-                <Grid Grid.Row="0" MouseLeftButtonDown="Header_MouseLeftButtonDown">
-                    <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                    <StackPanel><TextBlock Text="Zeitfluss" FontWeight="SemiBold" FontSize="15" /><TextBlock x:Name="DateText" Foreground="{StaticResource MutedInk}" FontSize="11" Margin="0,2,0,0" /></StackPanel>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal">
-                        <Button x:Name="PinButton" Style="{StaticResource GhostButton}" ToolTip="Im Vordergrund halten" Click="PinButton_Click"><TextBlock Text="⌖" FontFamily="Segoe UI Symbol" FontSize="14" /></Button>
-                        <Button x:Name="CompactModeButton" Style="{StaticResource GhostButton}" ToolTip="Kompakt anzeigen" Click="MinimizeButton_Click"><TextBlock Text="−" FontSize="15" /></Button>
-                        <Button Style="{StaticResource GhostButton}" ToolTip="Schließen" Click="CloseButton_Click"><TextBlock Text="×" FontSize="15" /></Button>
-                    </StackPanel>
-                </Grid>
-                <StackPanel Grid.Row="1" Margin="0,22,0,0">
-                    <TextBlock x:Name="StatusText" Text="Bereit" Foreground="{StaticResource MutedInk}" FontSize="12" FontWeight="SemiBold" />
-                    <TextBlock x:Name="ElapsedText" Text="00:00:00" FontFamily="Segoe UI Variable Display" FontSize="40" FontWeight="SemiBold" Margin="-2,2,0,0" />
-                </StackPanel>
-                <Grid Grid.Row="2" Margin="0,17,0,0">
-                    <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition /><ColumnDefinition /></Grid.ColumnDefinitions>
-                    <StackPanel Grid.Column="0"><TextBlock Text="Heute" FontSize="11" Foreground="{StaticResource MutedInk}" /><TextBlock x:Name="TodayActualText" Text="00:00" FontSize="15" FontWeight="SemiBold" Margin="0,3,0,0" /></StackPanel>
-                    <StackPanel Grid.Column="1"><TextBlock Text="Soll" FontSize="11" Foreground="{StaticResource MutedInk}" /><TextBlock x:Name="TodayTargetText" Text="08:00" FontSize="15" FontWeight="SemiBold" Margin="0,3,0,0" /></StackPanel>
-                    <StackPanel Grid.Column="2"><TextBlock Text="Gesamtsaldo" FontSize="11" Foreground="{StaticResource MutedInk}" /><TextBlock x:Name="BalanceText" Text="±00:00" FontSize="15" FontWeight="SemiBold" Margin="0,3,0,0" /></StackPanel>
-                </Grid>
-                <Grid Grid.Row="3" Margin="0,22,0,17">
-                    <Grid.RowDefinitions><RowDefinition Height="44" /><RowDefinition Height="9" /><RowDefinition Height="42" /></Grid.RowDefinitions><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="9" /><ColumnDefinition /></Grid.ColumnDefinitions>
-                    <Button x:Name="StartButton" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Style="{StaticResource PrimaryButton}" Content="Arbeit beginnen" Click="StartButton_Click" />
-                    <Button x:Name="PauseButton" Grid.Row="2" Grid.Column="0" Style="{StaticResource SecondaryButton}" Content="Pause" Click="PauseButton_Click" />
-                    <Button x:Name="EndButton" Grid.Row="2" Grid.Column="2" Style="{StaticResource SecondaryButton}" Content="Feierabend" Click="EndButton_Click" />
-                </Grid>
-                <Grid Grid.Row="4"><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                    <TextBlock x:Name="WeekText" VerticalAlignment="Center" Foreground="{StaticResource MutedInk}" FontSize="11" />
-                    <Button Grid.Column="1" Style="{StaticResource GhostButton}" ToolTip="Statistik und Export" Content="Auswertung" Click="StatisticsButton_Click" />
-                    <Button Grid.Column="2" Style="{StaticResource GhostButton}" ToolTip="Einstellungen" Click="SettingsButton_Click"><TextBlock Text="⚙" FontFamily="Segoe UI Symbol" FontSize="14" /></Button>
+                <Grid.Clip>
+                    <RectangleGeometry Rect="0,0,376,516" RadiusX="27" RadiusY="27" />
+                </Grid.Clip>
+                <Ellipse Width="210" Height="210" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-112,-85,0" IsHitTestVisible="False" Opacity="0.34">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Offset="0" Color="#8BAFD9FF" />
+                            <GradientStop Offset="1" Color="#00AFD9FF" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                    <Ellipse.Effect><BlurEffect Radius="22" /></Ellipse.Effect>
+                </Ellipse>
+                <Ellipse Width="190" Height="190" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="-105,0,0,-105" IsHitTestVisible="False" Opacity="0.24">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush>
+                            <GradientStop Offset="0" Color="#9D8D7CFF" />
+                            <GradientStop Offset="1" Color="#008D7CFF" />
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                    <Ellipse.Effect><BlurEffect Radius="26" /></Ellipse.Effect>
+                </Ellipse>
+
+                <Border Margin="3" CornerRadius="25" BorderBrush="#88FFFFFF" BorderThickness="1" IsHitTestVisible="False" />
+
+                <Grid Margin="22,20,22,18">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="40" />
+                        <RowDefinition Height="14" />
+                        <RowDefinition Height="124" />
+                        <RowDefinition Height="12" />
+                        <RowDefinition Height="76" />
+                        <RowDefinition Height="14" />
+                        <RowDefinition Height="108" />
+                        <RowDefinition Height="12" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" MouseLeftButtonDown="Header_MouseLeftButtonDown">
+                        <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Zeitfluss" FontWeight="SemiBold" FontSize="16" Foreground="{StaticResource Ink}" />
+                            <TextBlock x:Name="DateText" Foreground="{StaticResource MutedInk}" FontSize="11" Margin="0,2,0,0" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Button x:Name="PinButton" Style="{StaticResource HeaderIconButton}" ToolTip="Im Vordergrund halten" AutomationProperties.Name="Im Vordergrund halten" Click="PinButton_Click">
+                                <Viewbox Width="15" Height="15"><Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.5" StrokeLineJoin="Round" Data="M7.5,1 V14 M3,5.5 C3,3.5 4.8,2 7.5,2 C10.2,2 12,3.5 12,5.5 L12,8 H3 Z" /></Viewbox>
+                            </Button>
+                            <Button x:Name="CompactModeButton" Style="{StaticResource HeaderIconButton}" ToolTip="Kompakt anzeigen" AutomationProperties.Name="Kompakt anzeigen" Click="MinimizeButton_Click">
+                                <Viewbox Width="14" Height="14"><Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Data="M2,7 H12" /></Viewbox>
+                            </Button>
+                            <Button Style="{StaticResource HeaderIconButton}" ToolTip="Schließen" AutomationProperties.Name="Zeitfluss schließen" Click="CloseButton_Click">
+                                <Viewbox Width="14" Height="14"><Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Data="M2,2 L12,12 M12,2 L2,12" /></Viewbox>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Grid.Row="2" CornerRadius="22" Background="#AFFFFFFF" BorderBrush="#D6FFFFFF" BorderThickness="1" Padding="18,15">
+                        <Border.Effect><DropShadowEffect Color="#1A435A7A" BlurRadius="18" ShadowDepth="5" Opacity="0.28" /></Border.Effect>
+                        <Grid>
+                            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                            <Border x:Name="StatePill" HorizontalAlignment="Left" Background="{StaticResource AccentSoft}" CornerRadius="10" Padding="9,4">
+                                <StackPanel Orientation="Horizontal">
+                                    <Ellipse x:Name="StatusDot" Width="6" Height="6" Fill="{StaticResource Accent}" Margin="0,0,7,0" VerticalAlignment="Center" />
+                                    <TextBlock x:Name="StatusText" Text="Bereit" Foreground="#3E5F8A" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Border>
+                            <Grid Grid.Row="1" Margin="0,5,0,0">
+                                <Grid.RowDefinitions><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                <TextBlock x:Name="ElapsedText" Text="00:00:00" FontFamily="Segoe UI Variable Display" FontSize="43" FontWeight="SemiBold" Foreground="{StaticResource Ink}" Margin="-2,0,0,0" VerticalAlignment="Center" Typography.NumeralStyle="Lining" />
+                                <Grid Grid.Row="1">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="HeroCaptionText" Text="HEUTE ERFASST" FontSize="9" FontWeight="SemiBold" Foreground="{StaticResource MutedInk}" />
+                                    <TextBlock x:Name="HeroMetaText" Grid.Column="2" Text="Soll 08:00" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource MutedInk}" TextTrimming="CharacterEllipsis" />
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                    </Border>
+
+                    <Grid Grid.Row="4">
+                        <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="8" /><ColumnDefinition /><ColumnDefinition Width="8" /><ColumnDefinition /></Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Style="{StaticResource MetricCard}">
+                            <StackPanel><TextBlock Text="Heute" FontSize="10" Foreground="{StaticResource MutedInk}" /><TextBlock x:Name="TodayActualText" Text="00:00" FontFamily="Segoe UI Variable Display" FontSize="16" FontWeight="SemiBold" Margin="0,4,0,0" /></StackPanel>
+                        </Border>
+                        <Border Grid.Column="2" Style="{StaticResource MetricCard}">
+                            <StackPanel><TextBlock Text="Soll" FontSize="10" Foreground="{StaticResource MutedInk}" /><TextBlock x:Name="TodayTargetText" Text="08:00" FontFamily="Segoe UI Variable Display" FontSize="16" FontWeight="SemiBold" Margin="0,4,0,0" /></StackPanel>
+                        </Border>
+                        <Border Grid.Column="4" Style="{StaticResource MetricCard}">
+                            <StackPanel><TextBlock Text="Saldo" FontSize="10" Foreground="{StaticResource MutedInk}" /><TextBlock x:Name="BalanceText" Text="±00:00" FontFamily="Segoe UI Variable Display" FontSize="16" FontWeight="SemiBold" Margin="0,4,0,0" /></StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <Grid Grid.Row="6">
+                        <Grid.RowDefinitions><RowDefinition Height="50" /><RowDefinition Height="10" /><RowDefinition Height="48" /></Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="10" /><ColumnDefinition /></Grid.ColumnDefinitions>
+                        <Button x:Name="StartButton" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Style="{StaticResource MainActionButton}" Click="StartButton_Click" AutomationProperties.Name="Arbeit beginnen oder fortsetzen">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="24" Height="24" CornerRadius="12" Background="#22FFFFFF" Margin="0,0,9,0">
+                                    <Viewbox Width="9" Height="11"><Path Fill="White" Data="M1,0 L10,5.5 L1,11 Z" /></Viewbox>
+                                </Border>
+                                <TextBlock x:Name="StartButtonText" Text="Arbeit beginnen" VerticalAlignment="Center" FontWeight="SemiBold" />
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="PauseButton" Grid.Row="2" Grid.Column="0" Style="{StaticResource SecondaryActionButton}" Click="PauseButton_Click" AutomationProperties.Name="Arbeitszeit pausieren">
+                            <StackPanel Orientation="Horizontal"><Viewbox Width="11" Height="12" Margin="0,0,8,0"><Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M0,0 H3.5 V12 H0 Z M7.5,0 H11 V12 H7.5 Z" /></Viewbox><TextBlock Text="Pause" VerticalAlignment="Center" /></StackPanel>
+                        </Button>
+                        <Button x:Name="EndButton" Grid.Row="2" Grid.Column="2" Style="{StaticResource SecondaryActionButton}" Click="EndButton_Click" AutomationProperties.Name="Arbeitstag beenden">
+                            <StackPanel Orientation="Horizontal"><Rectangle Width="10" Height="10" RadiusX="2" RadiusY="2" Fill="{StaticResource Negative}" Margin="0,0,8,0" /><TextBlock Text="Feierabend" VerticalAlignment="Center" /></StackPanel>
+                        </Button>
+                    </Grid>
+
+                    <Border Grid.Row="8" CornerRadius="18" Background="#80FFFFFF" BorderBrush="#AFFFFFFF" BorderThickness="1" Padding="13,10">
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,12,0">
+                                <TextBlock x:Name="WeekText" Foreground="{StaticResource MutedInk}" FontSize="10" TextTrimming="CharacterEllipsis" />
+                                <ProgressBar x:Name="WeekProgress" Style="{StaticResource WeekProgressStyle}" Margin="0,7,0,0" Value="0" />
+                            </StackPanel>
+                            <Button Grid.Column="1" Style="{StaticResource GhostButton}" MinHeight="40" Padding="10,6" ToolTip="Statistik und Export" Content="Auswertung" Click="StatisticsButton_Click" />
+                            <Button Grid.Column="2" Style="{StaticResource GhostButton}" Width="40" MinHeight="40" Padding="10" ToolTip="Einstellungen" AutomationProperties.Name="Einstellungen öffnen" Click="SettingsButton_Click">
+                                <Viewbox Width="15" Height="15"><Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.5" StrokeLineJoin="Round" Data="M7.5,1.5 L8.7,3.2 L10.8,3 L11.1,5.1 L13,6 L12.2,8 L13,10 L11.1,10.9 L10.8,13 L8.7,12.8 L7.5,14.5 L6.3,12.8 L4.2,13 L3.9,10.9 L2,10 L2.8,8 L2,6 L3.9,5.1 L4.2,3 L6.3,3.2 Z M7.5,5.4 A2.6,2.6 0 1 0 7.5,10.6 A2.6,2.6 0 1 0 7.5,5.4" /></Viewbox>
+                            </Button>
+                        </Grid>
+                    </Border>
                 </Grid>
             </Grid>
         </Border>
 
-        <Border x:Name="CompactShell" Visibility="Collapsed" Margin="1" CornerRadius="26" Background="#171719" BorderBrush="#343439" BorderThickness="1">
-            <Grid Margin="11,0">
-                <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="1" /><ColumnDefinition Width="9" /><ColumnDefinition Width="32" /><ColumnDefinition Width="6" /><ColumnDefinition Width="32" /></Grid.ColumnDefinitions>
+        <Border x:Name="CompactShell" Visibility="Collapsed" Margin="2" CornerRadius="29" BorderBrush="#5CFFFFFF" BorderThickness="1">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Offset="0" Color="#D91B1B1F" />
+                    <GradientStop Offset="1" Color="#D924242A" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <Grid Margin="8,0">
+                <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="1" /><ColumnDefinition Width="7" /><ColumnDefinition Width="44" /><ColumnDefinition Width="6" /><ColumnDefinition Width="44" /></Grid.ColumnDefinitions>
                 <Grid x:Name="CompactDragSurface" Cursor="Hand" ToolTip="Klicken zum Öffnen · Ziehen zum Verschieben"
                       PreviewMouseLeftButtonDown="CompactShell_MouseLeftButtonDown" MouseMove="CompactShell_MouseMove" PreviewMouseLeftButtonUp="CompactShell_MouseLeftButtonUp">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="8" /><ColumnDefinition Width="Auto" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                     <Ellipse x:Name="CompactStatusDot" Width="7" Height="7" Fill="#85858C" VerticalAlignment="Center" />
                     <TextBlock x:Name="CompactTimeText" Grid.Column="2" Text="00:00" Foreground="White" FontFamily="Segoe UI Variable Display" FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center" />
-                    <TextBlock Grid.Column="4" Text="↗" Foreground="#AFAFB5" FontSize="12" Margin="7,0,2,0" VerticalAlignment="Center" />
+                    <Viewbox Grid.Column="4" Width="11" Height="11" Margin="8,0,4,0" VerticalAlignment="Center"><Path Stroke="#AFAFB5" StrokeThickness="1.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Data="M2,9 L9,2 M5,2 H9 V6" /></Viewbox>
                 </Grid>
-                <Border Grid.Column="1" Background="#36363B" Margin="0,12" />
-                <Button x:Name="CompactPauseButton" Grid.Column="3" Style="{StaticResource CompactActionButton}" ToolTip="Pause" Click="CompactPauseButton_Click">
-                    <Viewbox Width="11" Height="12"><Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M0,0 H3.5 V12 H0 Z M7.5,0 H11 V12 H7.5 Z" /></Viewbox>
+                <Border Grid.Column="1" Background="#4FFFFFFF" Margin="0,13" />
+                <Button x:Name="CompactPauseButton" Grid.Column="3" Style="{StaticResource CompactActionButton}" ToolTip="Pause" AutomationProperties.Name="Arbeitszeit pausieren" Click="CompactPauseButton_Click">
+                    <Grid>
+                        <Viewbox x:Name="CompactPauseIcon" Width="11" Height="12"><Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M0,0 H3.5 V12 H0 Z M7.5,0 H11 V12 H7.5 Z" /></Viewbox>
+                        <Viewbox x:Name="CompactResumeIcon" Width="11" Height="13" Visibility="Collapsed"><Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M1,0 L11,6.5 L1,13 Z" /></Viewbox>
+                    </Grid>
                 </Button>
-                <Button x:Name="CompactEndButton" Grid.Column="5" Style="{StaticResource CompactStopButton}" ToolTip="Zeiterfassung stoppen" Click="CompactEndButton_Click">
-                    <Rectangle Width="10" Height="10" RadiusX="1.5" RadiusY="1.5" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                <Button x:Name="CompactEndButton" Grid.Column="5" Style="{StaticResource CompactStopButton}" ToolTip="Zeiterfassung stoppen" AutomationProperties.Name="Arbeitstag beenden" Click="CompactEndButton_Click">
+                    <Rectangle Width="10" Height="10" RadiusX="2" RadiusY="2" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
                 </Button>
+            </Grid>
+        </Border>
+
+        <Border x:Name="ActionToast" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="332" Margin="0,0,0,18"
+                Background="#F51B1B1F" BorderBrush="#52FFFFFF" BorderThickness="1" CornerRadius="15" Padding="13,10">
+            <Border.Effect><DropShadowEffect Color="#50000000" BlurRadius="18" ShadowDepth="5" Opacity="0.36" /></Border.Effect>
+            <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <TextBlock x:Name="ActionToastText" Foreground="White" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,12,0" />
+                <Button x:Name="UndoActionButton" Grid.Column="1" Style="{StaticResource GhostButton}" Foreground="#B9D5FF" Content="Rückgängig" Padding="8,4" Click="UndoActionButton_Click" />
             </Grid>
         </Border>
     </Grid>
